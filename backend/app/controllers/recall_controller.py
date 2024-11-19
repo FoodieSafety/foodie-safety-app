@@ -26,6 +26,8 @@ def formatFoodRecalls(start_date, end_date):
         for event in data['results']: # For each result from the search query
             # Create a dictionary to house each recall item
             recall = {
+                # Grab the recalling firm
+                'Recalling Firm': event['recalling_firm'],
                 # Grab the product description
                 'Product Description': event['product_description'],
                 # Grab the reason for recall
@@ -34,6 +36,8 @@ def formatFoodRecalls(start_date, end_date):
                 'Report Date': event['report_date'],
                 #Grab classification
                 'Classification': event['classification'],
+                # Grab the product quantity 
+                'Product Quantity': event['product_quantity'],
                 # Grab the distribution pattern (which states or nationwide)
                 'Distribution': event['distribution_pattern'],
                 # Grab the code info
