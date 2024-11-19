@@ -62,7 +62,7 @@ def getFoodRecalls(start_date, end_date):
     # URL for all food recalls between given start and end date within the US
     url = ("https://api.fda.gov/food/enforcement.json?search=(report_date:[" 
            + start_date + "+TO+" + end_date 
-           + "]+AND+country=United+States)&sort=report_date:desc&limit=100")
+           + "]+AND+country=United+States)&sort=report_date:desc&limit=1000")
     
     response = requests.get(url)  # Make a GET request to the FDA API
     if response.status_code == 200:  # Check if the request was successful (status code 200)
