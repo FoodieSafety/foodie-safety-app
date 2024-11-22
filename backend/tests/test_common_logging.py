@@ -1,96 +1,88 @@
 import unittest
-from unittest.mock import MagicMock, patch
-import json
 import logging
-from backend.utils.common_logging import CommonLogger, log_execution_time
+import os
+from unittest.mock import patch
+from io import StringIO
+from backend.utils.common_logging import create_logs
 
 class TestLogger(unittest.TestCase):
-    def setUp(self):
-        # Reset the singleton instance before each test
-        CommonLogger._instance = None
 
-    def test_singleton(self):
-        """Test logger follows singleton design pattern"""
-        logger1 = CommonLogger("service1")
-        logger2 = CommonLogger("service2")
-        # Should be the same instance
-        self.assertIs(logger1, logger2)
-        self.assertEqual(logger2.service_name, "service2")
+    def test_logger_injection(self):
+        @create_logs(log_to_file=False)
+        def test_function(logger=None):
+            self.assertIsNotNone(logger)
+            self.assertIsInstance(logger, logging.Logger)
+        test_function()
 
-    def test_different_service_name(self):
-        """Test service name updates correctly"""
-        logger1 = CommonLogger("service1")
-        self.assertEqual(logger1.service_name, "service1")
-        logger2 = CommonLogger("service2")
-        self.assertEqual(logger2.service_name, "service2")
-        # same instance will have same name
-        self.assertEqual(logger1.service_name, "service2")
+    def test_logger_config(self):
+        @create_logs(log_to_file=True, log_dir="test_logs", log_level=logging.INFO)
+        def test_function(logger=None):
+            pass
+        test_function()
 
-    @patch("logging.Logger.info")
-    def test_info_logging(self, mock_info):
-        """Test info level logging"""
-        logger = CommonLogger("test")
-        test_msg = "test message"
-        extra_info = {"key": "value"}
-        # Create info level log
-        logger.info(test_msg, extra_info)
+        logger = logging.getLogger(test_function.__module__)
+        # Assert Level
+        self.assertEqual(logger.level, logging.INFO)
 
-        mock_info.assert_called_once()
-        actual_log_message = mock_info.call_args[0][0]
-        actual_log = json.loads(actual_log_message)
-        self.assertEqual(actual_log["service_name"], "test")
-        self.assertEqual(actual_log["message"], test_msg)
-        self.assertEqual(actual_log["key"], "value")
+        # Check handler
+        handlers = logger.handlers
+        self.assertEqual(len(handlers), 2)
+        logger.handlers.clear()
 
-    @patch("logging.Logger.error")
-    def test_error_logging(self, mock_error):
-        """Test info level logging"""
-        logger = CommonLogger("test")
-        test_msg = "error message"
-        extra_info = {"error_code": 500}
-        # Create info level log
-        logger.error(test_msg, extra_info)
+    def test_logging_output(self):
+        @create_logs(log_to_file=True, log_dir="test_logs", log_level=logging.WARNING)
+        def test_function(logger=None):
+            logger.debug("debug message")
+            logger.info("info message")
+            logger.warning("warning message")
+            logger.error("error message")
 
-        mock_error.assert_called_once()
-        actual_log_message = mock_error.call_args[0][0]
-        actual_log = json.loads(actual_log_message)
-        self.assertEqual(actual_log["service_name"], "test")
-        self.assertEqual(actual_log["message"], test_msg)
-        self.assertEqual(actual_log["error_code"], 500)
+        with self.assertLogs(level="WARNING") as log_capture:
+            test_function()
+        # Check output
+        self.assertEqual(len(log_capture.output), 2)
+        self.assertIn("WARNING", log_capture.output[0])
+        self.assertIn("warning message", log_capture.output[0])
+        self.assertIn("ERROR", log_capture.output[1])
+        self.assertIn("error message", log_capture.output[1])
 
-    @patch("logging.Logger.warning")
-    def test_warning_logging(self, mock_warning):
-        """Test info level logging"""
-        logger = CommonLogger("test")
-        test_msg = "warning message"
-        # Create info level log
-        logger.warning(test_msg)
+    def test_log_file_creation(self):
+        log_dir = "test_logs"
+        @create_logs(log_to_file=True, log_dir=log_dir, log_level=logging.INFO)
+        def test_function(logger=None):
+            logger.info("test info message")
+        test_function()
 
-        mock_warning.assert_called_once()
-        actual_log_message = mock_warning.call_args[0][0]
-        actual_log = json.loads(actual_log_message)
-        self.assertEqual(actual_log["service_name"], "test")
-        self.assertEqual(actual_log["message"], test_msg)
+        from datetime import datetime
+        curr_date = datetime.now().strftime("%Y-%m-%d")
+        log_file = os.path.join(log_dir, f"{curr_date}.log")
 
-    @patch("logging.Logger.info")
-    def test_log_execution_time(self, mock_info):
-        CommonLogger("test")
+        # Check file exists
+        self.assertTrue(os.path.exists(log_file))
 
-        """Test log execution time"""
-        @log_execution_time
-        def sample_function(a, b):
-            return a + b
+        with open(log_file, "r") as f:
+            content = f.read()
+            self.assertIn("INFO", content)
+            self.assertIn("test info message", content)
 
-        result = sample_function(1, 2)
-        self.assertEqual(result, 3)
+        # Clean up resource
+        os.remove(log_file)
+        os.rmdir(log_dir)
+        logger = logging.getLogger(test_function.__module__)
+        logger.handlers.clear()
 
-        mock_info.assert_called_once()
-
-        # Verify the log message
-        log_message = mock_info.call_args[0][0]
-        actual_log = json.loads(log_message)
-        self.assertEqual(actual_log["service_name"], "test")
-        self.assertEqual(actual_log["message"], "Function sample_function completed")
+    def test_handlers_not_duplicate(self):
+        @create_logs(log_to_file=False)
+        def test_function(logger=None):
+            pass
+        test_function()
+        logger = logging.getLogger(test_function.__module__)
+        count_before = len(logger.handlers)
+        # Invoke again
+        test_function()
+        count_after = len(logger.handlers)
+        self.assertEqual(count_before, count_after)
+        logger.handlers.clear()
 
 def run_tests():
     unittest.main()

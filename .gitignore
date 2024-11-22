@@ -23,3 +23,8 @@ env/
 # Node.js
 node_modules/
 dist/
+
+
+# Ignore local log files
+logs/
+*.log
