@@ -23,7 +23,7 @@ async def log_requests(request: Request, call_next):
         "method": request.method,
         "path": request.url.path,
         "status_code": response.status_code,
-        "process_time": process_time_formatted,
+        "process_time_ms": process_time_formatted,
     }
     logger.info(log_dict)
 

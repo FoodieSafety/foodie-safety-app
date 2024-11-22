@@ -71,7 +71,7 @@ async def test_log_requests_basic():
         assert log_dict["method"] == "GET"
         assert log_dict["path"] == "/test"
         assert log_dict["status_code"] == 200
-        assert isinstance(float(log_dict["process_time"]), float)
+        assert isinstance(float(log_dict["process_time_ms"]), float)
 
 
 @pytest.mark.asyncio
@@ -158,7 +158,7 @@ async def test_log_requests_process_time():
         await log_requests(request, call_next)
 
         log_dict = mock_logger.info.call_args[0][0]
-        process_time = float(log_dict["process_time"])
+        process_time = float(log_dict["process_time_ms"])
 
         # Process time should be greater than 100ms (due to sleep)
         assert process_time > 100
