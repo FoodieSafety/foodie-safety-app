@@ -1,56 +1,47 @@
 import logging
-from functools import wraps
 import os
 from datetime import datetime
+from pythonjsonlogger import jsonlogger
 
-def create_logs(log_to_file=True, log_dir="logs", log_level=logging.DEBUG):
+def setup_logger(name=None, to_file=True, log_dir="logs", level=logging.DEBUG):
     """
-    Decorator to set up logging for a function
-    :param log_to_file: Whether to log to file or not.
-    :param log_dir: Directory to write logs to
-    :param log_level: Logging level.
-    Use logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, or logging.CRITICAL.
-    :return: None
+    Set up and return a logger instance
+    :param name: (str) Name of the logger. If None, use the root logger
+    :param to_file: (bool) Whether to log to a file
+    :param dir: (str) The directory to save logs to
+    :param level: (int) Logging level
+    :return: Configured logger instance
     """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            # Get the logger for the module where the function is defined
-            logger = logging.getLogger(func.__module__)
-            logger.setLevel(log_level)
+    # Create logger and set logging level
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
 
-            # Remove existing handlers
-            if logger.hasHandlers():
-                logger.handlers.clear()
+    # Prevent adding multiple handlers to the logger
+    if not logger.handlers:
+        # Define log format
+        log_format = (
+            "%(asctime)s %(name)s %(levelname)s %(message)s %(filename)s"
+            "%(funcName)s %(lineno)d %(threadName)s"
+        )
+        formatter = jsonlogger.JsonFormatter(log_format)
 
-            # Create console handlers (for stdin stdout)
-            console_handler = logging.StreamHandler()
-            console_handler.setLevel(log_level)
+        # Console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(level)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
 
-            # Define formatter
-            formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S"
-            )
-            console_handler.setFormatter(formatter)
-            logger.addHandler(console_handler)
+        # If log to file, add file handler
+        if to_file:
+            # Create directory if not exists
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir)
+            # Get current date
+            curr_date = datetime.now().strftime("%Y-%m-%d")
+            file_path = os.path.join(log_dir, f"{curr_date}.log")
+            file_handler = logging.FileHandler(file_path)
+            file_handler.setLevel(level)
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
 
-            # Add Filehandler if log_to_file is True
-            if log_to_file:
-                if not os.path.isdir(log_dir):
-                    os.mkdir(log_dir)
-
-                # Create log file name based on current date
-                curr_date = datetime.now().strftime("%Y-%m-%d")
-                log_path = os.path.join(log_dir, f"{curr_date}.log")
-
-                file_handler = logging.FileHandler(log_path)
-                file_handler.setLevel(log_level)
-                file_handler.setFormatter(formatter)
-                logger.addHandler(file_handler)
-
-            # Inject logger into function's kwargs
-            kwargs["logger"] = logger
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
+    return logger

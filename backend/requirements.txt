@@ -6,3 +6,4 @@ watchtower
 boto3              
 pytest
 sqlalchemy
+python-json-logger
