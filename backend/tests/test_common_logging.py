@@ -1,88 +1,123 @@
 import unittest
 import logging
 import os
+import json
 from unittest.mock import patch
-from io import StringIO
-from backend.utils.common_logging import create_logs
 
-class TestLogger(unittest.TestCase):
+from backend.utils.common_logging import setup_logger
+from pythonjsonlogger import jsonlogger
 
-    def test_logger_injection(self):
-        @create_logs(log_to_file=False)
-        def test_function(logger=None):
-            self.assertIsNotNone(logger)
-            self.assertIsInstance(logger, logging.Logger)
-        test_function()
+class TestCommonLogging(unittest.TestCase):
 
-    def test_logger_config(self):
-        @create_logs(log_to_file=True, log_dir="test_logs", log_level=logging.INFO)
-        def test_function(logger=None):
-            pass
-        test_function()
+    def setUp(self):
+        """
+        Set up testing environment
+        :return: None
+        """
+        # Set up the log directory for testing
+        self.log_dir = "test_logs"
+        if not os.path.exists(self.log_dir):
+            os.makedirs(self.log_dir)
 
-        logger = logging.getLogger(test_function.__module__)
-        # Assert Level
-        self.assertEqual(logger.level, logging.INFO)
+        # Remove existing log files in the test logs
+        for filename in os.listdir(self.log_dir):
+            file_path = os.path.join(self.log_dir, filename)
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
 
-        # Check handler
+    def tearDown(self):
+        """
+        Remove the test log directory after tests
+        :return: None
+        """
+        for filename in os.listdir(self.log_dir):
+            file_path = os.path.join(self.log_dir, filename)
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+        os.rmdir(self.log_dir)
+
+    def test_setup_logger(self):
+        """
+        Test setting up looger
+        :return: Logger instance
+        """
+        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
+        self.assertTrue(logger is not None)
+        self.assertIsInstance(logger, logging.Logger)
+
+    def test_logger_has_correct_handlers(self):
+        """
+        Test logger has correct handlers
+        :return: None
+        """
+        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
         handlers = logger.handlers
-        self.assertEqual(len(handlers), 2)
+        self.assertTrue(len(handlers) > 0)
+        self.assertEqual(len(handlers), 2) # streamhandler and filehandler
+
+        handler_types = [type(handler) for handler in handlers]
+        self.assertIn(logging.StreamHandler, handler_types)
+        self.assertIn(logging.FileHandler, handler_types)
+
+    def test_handlers_use_json_formatter(self):
+        """
+        Test logger has correct handlers
+        :return: None
+        """
+        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
+        for handler in logger.handlers:
+            self.assertIsInstance(handler.formatter, jsonlogger.JsonFormatter)
+
+    def test_logging_output_is_json(self):
+        """
+        Test logging output is JSON format
+        :return: None
+        """
+        # Get the logger and clear its handlers
+        logger = logging.getLogger("test_logger")
         logger.handlers.clear()
 
-    def test_logging_output(self):
-        @create_logs(log_to_file=True, log_dir="test_logs", log_level=logging.WARNING)
-        def test_function(logger=None):
-            logger.debug("debug message")
-            logger.info("info message")
-            logger.warning("warning message")
-            logger.error("error message")
+        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
+        test_message = "This is a test message for test log"
+        logger.info(test_message)
 
-        with self.assertLogs(level="WARNING") as log_capture:
-            test_function()
-        # Check output
-        self.assertEqual(len(log_capture.output), 2)
-        self.assertIn("WARNING", log_capture.output[0])
-        self.assertIn("warning message", log_capture.output[0])
-        self.assertIn("ERROR", log_capture.output[1])
-        self.assertIn("error message", log_capture.output[1])
-
-    def test_log_file_creation(self):
-        log_dir = "test_logs"
-        @create_logs(log_to_file=True, log_dir=log_dir, log_level=logging.INFO)
-        def test_function(logger=None):
-            logger.info("test info message")
-        test_function()
-
+        # Check log file
         from datetime import datetime
         curr_date = datetime.now().strftime("%Y-%m-%d")
-        log_file = os.path.join(log_dir, f"{curr_date}.log")
+        file_path = os.path.join(self.log_dir, f"{curr_date}.log")
+        # Check exist
+        self.assertTrue(os.path.exists(file_path))
 
-        # Check file exists
-        self.assertTrue(os.path.exists(log_file))
+        with open(file_path, "r") as f:
+            contents = f.read()
+            entry = json.loads(contents.strip())
+            self.assertEqual(entry["message"], test_message)
+            self.assertEqual(entry["levelname"], "INFO")
+            self.assertEqual(entry["name"], "test_logger")
 
-        with open(log_file, "r") as f:
-            content = f.read()
-            self.assertIn("INFO", content)
-            self.assertIn("test info message", content)
+    def test_prevent_duplicate_handler(self):
+        """
+        Test logger has correct handlers
+        :return: None
+        """
+        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
+        before_count = len(logger.handlers)
 
-        # Clean up resource
-        os.remove(log_file)
-        os.rmdir(log_dir)
-        logger = logging.getLogger(test_function.__module__)
-        logger.handlers.clear()
+        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
+        after_count = len(logger.handlers)
+        self.assertEqual(before_count, after_count)
+        self.assertEqual(after_count, 2)
 
-    def test_handlers_not_duplicate(self):
-        @create_logs(log_to_file=False)
-        def test_function(logger=None):
-            pass
-        test_function()
-        logger = logging.getLogger(test_function.__module__)
-        count_before = len(logger.handlers)
-        # Invoke again
-        test_function()
-        count_after = len(logger.handlers)
-        self.assertEqual(count_before, count_after)
-        logger.handlers.clear()
+    def test_log_to_console(self):
+        """
+        Test logging to console
+        :return: None
+        """
+        logger = setup_logger(name="test_logger_console", to_file=False)
+        handlers = logger.handlers
+        self.assertEqual(len(handlers), 1)
+        self.assertIsInstance(handlers[0], logging.StreamHandler)
+
 
 def run_tests():
     unittest.main()
