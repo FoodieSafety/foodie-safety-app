@@ -18,6 +18,7 @@ Resources:
           DYNAMODB_TABLE: "RecallsTable"         # Environment variable for DynamoDB table
           LOG_LEVEL: "DEBUG"
           PYTHONPATH: "/var/task"                # Include path
+          AWS_SAM_LOCAL: "true"
 #      Events:
 #        ScheduledEvent: # EventBridge rule for periodic invocation
 #          Type: Schedule

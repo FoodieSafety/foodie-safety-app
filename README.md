@@ -65,3 +65,66 @@ UI_ver2
 ```
 <local url with port 8000>/redoc
 ```
+
+
+# Local Test Lambda Function
+Prerequisite:
+1. Docker desktop
+2. AWS SAM CLI
+3. AWS CLI
+4. Related files: event.json, template.yaml
+
+Some commands:
+build
+```
+sam build
+```
+test
+```
+sam local invoke FoodRecallProcessorFunction -e event.json
+```
+
+# Local Test DynamoDB
+Prerequisite
+1. dynamodb-local installed and run via docker-image
+Pull
+```
+docker pull amazon/dynamodb-local
+```
+Run
+```
+docker run -p 8000:8000 amazon/dynamodb-local
+```
+Check container
+```
+docker ps
+```
+
+Some commands (take food recall service for example)
+List table
+```
+aws dynamodb list-tables --endpoint-url http://localhost:8000 --region dummy
+```
+Create testing table
+```
+aws dynamodb create-table \
+    --table-name RecallsTable \
+    --attribute-definitions AttributeName=RecallID,AttributeType=S \
+    --key-schema AttributeName=RecallID,KeyType=HASH \
+    --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
+    --endpoint-url http://localhost:8000
+```
+Scan entire table
+```
+aws dynamodb scan --table-name RecallsTable --endpoint-url http://localhost:8000
+```
+Delete table
+```
+aws dynamodb delete-table --table-name RecallsTable --endpoint-url http://localhost:8000
+```
+Stop docker
+```
+docker stop <Container ID>
+```
+
+
