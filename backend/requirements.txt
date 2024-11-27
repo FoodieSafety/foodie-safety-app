@@ -5,4 +5,6 @@ python-dotenv
 watchtower         
 boto3              
 pytest
+pytest-asyncio
 sqlalchemy
+python-json-logger

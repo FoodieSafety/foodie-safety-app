@@ -23,3 +23,11 @@ env/
 # Node.js
 node_modules/
 dist/
+
+
+# Ignore local log files
+logs/
+*.log
+
+# AWS SAM build file
+*.aws-sam
