@@ -37,13 +37,16 @@ def lambda_handler(event, context):
     :return: response in JSON format
     """
     table_name = os.getenv("DYNAMODB_TABLE")
-    start_date = (datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
-    end_date = (datetime.now()).strftime("%Y-%m-%d")
+    # start_date = (datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+    # end_date = (datetime.now()).strftime("%Y-%m-%d")
 
+    # test code
+    start_date = event["startDate"]
+    end_date = event["endDate"]
     recalls = formatFoodRecalls(start_date, end_date)
 
     if recalls:
-        store_data_in_db(table_name, recalls)
+        # store_data_in_db(table_name, recalls)
         return {
             "statusCode": 200,
             "body": f"Stored {len(recalls)} recalls from {start_date} to {end_date}.",
