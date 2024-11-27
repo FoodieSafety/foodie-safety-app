@@ -28,3 +28,6 @@ dist/
 # Ignore local log files
 logs/
 *.log
+
+# AWS SAM build file
+*.aws-sam
