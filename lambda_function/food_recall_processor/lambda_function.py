@@ -2,7 +2,7 @@ import os
 import boto3
 import datetime
 from botocore.exceptions import ClientError
-from fetch_food_recalls import getFoodRecalls, formatFoodRecalls
+from lambda_function.food_recall_processor.fetch_food_recalls import getFoodRecalls, formatFoodRecalls
 from typing import List
 import time
 from backend.utils.common_logging import setup_logger
