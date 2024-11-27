@@ -1,125 +1,188 @@
 import unittest
-import logging
 import os
+import logging
+from logging.handlers import RotatingFileHandler
+from io import StringIO
+from lambda_function.utils.logging_util import Logger
 import json
-
-from lambda_function.utils.common_logging import setup_logger
 from pythonjsonlogger import jsonlogger
+from unittest.mock import patch, MagicMock
 
-class TestCommonLogging(unittest.TestCase):
+
+class TestLogger(unittest.TestCase):
+    LOG_DIR = "test_logs"
 
     def setUp(self):
-        """
-        Set up testing environment
-        :return: None
-        """
-        # Set up the log directory for testing
-        self.log_dir = "test_logs"
-        if not os.path.exists(self.log_dir):
-            os.makedirs(self.log_dir)
-
-        # Remove existing log files in the test logs
-        for filename in os.listdir(self.log_dir):
-            file_path = os.path.join(self.log_dir, filename)
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
+        # Cleanup logs from previous tests
+        if os.path.exists(self.LOG_DIR):
+            for file in os.listdir(self.LOG_DIR):
+                os.remove(os.path.join(self.LOG_DIR, file))
+        else:
+            os.makedirs(self.LOG_DIR)
 
     def tearDown(self):
-        """
-        Remove the test log directory after tests
-        :return: None
-        """
-        for filename in os.listdir(self.log_dir):
-            file_path = os.path.join(self.log_dir, filename)
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-        os.rmdir(self.log_dir)
+        # Cleanup logs after each test
+        for file in os.listdir(self.LOG_DIR):
+            os.remove(os.path.join(self.LOG_DIR, file))
 
-    def test_setup_logger(self):
-        """
-        Test setting up looger
-        :return: Logger instance
-        """
-        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
-        self.assertTrue(logger is not None)
-        self.assertIsInstance(logger, logging.Logger)
+    def test_singleton_behavior(self):
+        logger1 = Logger(name="test-logger", log_dir=self.LOG_DIR)
+        logger2 = Logger(name="test-logger", log_dir=self.LOG_DIR)
+        self.assertIs(logger1, logger2, "Logger instances should be the same for the same name")
 
-    def test_logger_has_correct_handlers(self):
-        """
-        Test logger has correct handlers
-        :return: None
-        """
-        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
-        handlers = logger.handlers
-        self.assertTrue(len(handlers) > 0)
-        self.assertEqual(len(handlers), 2) # streamhandler and filehandler
+    def test_no_duplicate_handlers(self):
+        logger1 = Logger(name="test-logger", log_dir=self.LOG_DIR)
+        initial_handler_count = len(logger1.logger.handlers)
 
-        handler_types = [type(handler) for handler in handlers]
-        self.assertIn(logging.StreamHandler, handler_types)
-        self.assertIn(logging.FileHandler, handler_types)
+        # Re-initialize the same logger
+        logger2 = Logger(name="test-logger", log_dir=self.LOG_DIR)
+        final_handler_count = len(logger2.logger.handlers)
 
-    def test_handlers_use_json_formatter(self):
-        """
-        Test logger has correct handlers
-        :return: None
-        """
-        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
-        for handler in logger.handlers:
-            self.assertIsInstance(handler.formatter, jsonlogger.JsonFormatter)
+        self.assertEqual(
+            initial_handler_count, final_handler_count, "Handlers should not be duplicated"
+        )
 
-    def test_logging_output_is_json(self):
-        """
-        Test logging output is JSON format
-        :return: None
-        """
-        # Get the logger and clear its handlers
-        logger = logging.getLogger("test_logger")
-        logger.handlers.clear()
+    def test_console_logging(self):
+        logger = Logger(name="console-test", to_file=False, log_dir=self.LOG_DIR)
 
-        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
-        test_message = "This is a test message for test log"
-        logger.info(test_message)
+        # Attach a custom StringIO stream to capture console output
+        console_stream = StringIO()
+        for handler in logger.logger.handlers:
+            if isinstance(handler, logging.StreamHandler):
+                handler.stream = console_stream  # Redirect the handler's stream to StringIO
 
-        # Check log file
-        from datetime import datetime
-        curr_date = datetime.now().strftime("%Y-%m-%d")
-        file_path = os.path.join(self.log_dir, f"{curr_date}.log")
-        # Check exist
-        self.assertTrue(os.path.exists(file_path))
+        # Log a message
+        logger.log("info", "Test console message", context="console-test")
 
-        with open(file_path, "r") as f:
-            contents = f.read()
-            entry = json.loads(contents.strip())
-            self.assertEqual(entry["message"], test_message)
-            self.assertEqual(entry["levelname"], "INFO")
-            self.assertEqual(entry["name"], "test_logger")
+        # Retrieve the console output from the StringIO stream
+        output = console_stream.getvalue()
 
-    def test_prevent_duplicate_handler(self):
-        """
-        Test logger has correct handlers
-        :return: None
-        """
-        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
-        before_count = len(logger.handlers)
+        # Assertions
+        self.assertIn("Test console message", output, "Console output should contain the logged message")
+        self.assertIn("console-test", output, "Console output should include the additional context")
 
-        logger = setup_logger(name="test_logger", to_file=True, log_dir=self.log_dir)
-        after_count = len(logger.handlers)
-        self.assertEqual(before_count, after_count)
-        self.assertEqual(after_count, 2)
+    def test_file_logging(self):
+        logger = Logger(name="file-test", to_file=True, log_dir=self.LOG_DIR)
+        logger.log("info", "Test file message", context="file-test")
 
-    def test_log_to_console(self):
-        """
-        Test logging to console
-        :return: None
-        """
-        logger = setup_logger(name="test_logger_console", to_file=False)
-        handlers = logger.handlers
-        self.assertEqual(len(handlers), 1)
-        self.assertIsInstance(handlers[0], logging.StreamHandler)
+        # Check if a log file was created
+        log_files = os.listdir(self.LOG_DIR)
+        self.assertTrue(len(log_files) > 0, "A log file should be created")
 
+        # Check log content
+        with open(os.path.join(self.LOG_DIR, log_files[0]), "r") as log_file:
+            content = log_file.read()
+            self.assertIn("Test file message", content, "File log should contain the logged message")
+            self.assertIn("file-test", content, "File log should include the additional context")
 
-def run_tests():
-    unittest.main()
+    def test_log_level(self):
+        logger = Logger(name="level-test", log_dir=self.LOG_DIR, level=logging.ERROR)
+
+        # Attach a custom StringIO stream to capture console output
+        console_stream = StringIO()
+        for handler in logger.logger.handlers:
+            if isinstance(handler, logging.StreamHandler):
+                handler.stream = console_stream  # Redirect the handler's stream to StringIO
+
+        # Log messages at different levels
+        logger.log("info", "This message should not appear")
+        logger.log("error", "This message should appear")
+
+        # Retrieve the console output from the StringIO stream
+        output = console_stream.getvalue()
+
+        # Assertions
+        self.assertNotIn(
+            "This message should not appear",
+            output,
+            "INFO level messages should not be logged"
+        )
+        self.assertIn(
+            "This message should appear",
+            output,
+            "ERROR level messages should be logged"
+        )
+
+    def test_log_format(self):
+        logger = Logger(name="format-test", to_file=False, log_dir=self.LOG_DIR)
+
+        # Attach a custom StringIO stream to capture console output
+        console_stream = StringIO()
+        for handler in logger.logger.handlers:
+            if isinstance(handler, logging.StreamHandler):
+                handler.stream = console_stream  # Redirect the handler's stream to StringIO
+
+        # Log a message
+        logger.log("info", "Check log format", key="value")
+
+        # Retrieve the console output from the StringIO stream
+        output = console_stream.getvalue()
+
+        # Parse the JSON log output
+        log_json = json.loads(output)
+
+        # Validate the log fields
+        self.assertEqual(log_json["message"], "Check log format", "Log message should match")
+        self.assertEqual(log_json["levelname"], "INFO", "Log level should be INFO")
+        self.assertEqual(log_json["name"], "format-test", "Logger name should match")
+        self.assertIn("key", log_json["extra"], "Extra field 'key' should be present")
+        self.assertEqual(log_json["extra"]["key"], "value", "Extra field 'key' should have the correct value")
+
+    def test_rotating_file_handler(self):
+        # Set a small maxBytes for testing
+        max_bytes = 1024  # 1 KB for quick rotation
+        logger = Logger(name="rotate-test", log_dir=self.LOG_DIR, to_file=True)
+
+        # Replace the file handler with a custom RotatingFileHandler
+        for handler in logger.logger.handlers:
+            if isinstance(handler, RotatingFileHandler):
+                logger.logger.removeHandler(handler)
+                break
+
+        file_path = os.path.join(self.LOG_DIR, "test.log")
+        rotating_handler = RotatingFileHandler(
+            file_path, maxBytes=max_bytes, backupCount=5
+        )
+        formatter = jsonlogger.JsonFormatter(
+            "%(asctime)s %(name)s %(levelname)s %(message)s"
+        )
+        rotating_handler.setFormatter(formatter)
+        logger.logger.addHandler(rotating_handler)
+
+        # Simulate large logs to trigger rotation
+        for _ in range(1000):  # Log enough messages to exceed the size
+            logger.log("info", "Filler message")
+
+        log_files = os.listdir(self.LOG_DIR)
+        self.assertTrue(len(log_files) > 1, "Log rotation should create multiple log files")
+
+    import json
+
+    def test_additional_context(self):
+        logger = Logger(name="context-test", to_file=False, log_dir=self.LOG_DIR)
+
+        # Attach a custom StringIO stream to capture console output
+        console_stream = StringIO()
+        for handler in logger.logger.handlers:
+            if isinstance(handler, logging.StreamHandler):
+                handler.stream = console_stream  # Redirect the handler's stream to StringIO
+
+        # Log a message with additional context
+        logger.log("info", "Message with context", user="test-user", action="test-action")
+
+        # Retrieve the console output from the StringIO stream
+        output = console_stream.getvalue()
+
+        # Parse the JSON-formatted output
+        log_json = json.loads(output)
+
+        # Validate the log message and additional context
+        self.assertEqual(log_json["message"], "Message with context", "Log message should match")
+        self.assertIn("user", log_json["extra"], "User field should be present in extra context")
+        self.assertEqual(log_json["extra"]["user"], "test-user", "User field should match the expected value")
+        self.assertIn("action", log_json["extra"], "Action field should be present in extra context")
+        self.assertEqual(log_json["extra"]["action"], "test-action", "Action field should match the expected value")
+
 
 if __name__ == "__main__":
-    run_tests()
+    unittest.main()

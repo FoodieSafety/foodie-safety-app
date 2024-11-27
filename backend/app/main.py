@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from backend.middlewares.logging_middleware import log_requests
-from lambda_function.utils.common_logging import setup_logger
+from lambda_function.utils.logging_util import setup_logger
 from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = setup_logger(name="backend_server", to_file=False)
