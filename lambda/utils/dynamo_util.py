@@ -30,28 +30,40 @@ class DynamoUtil:
             table_name: str,
             attribute_definitions: List[Dict[str, str]],
             key_schema: List[Dict[str, str]],
-            provisioned_throughput: Dict[str, int] = None,
+            billing_mode: str = "PAY_PER_REQUEST",
+            provisioned_throughput: Optional[Dict[str, int]] = None,
     ) -> None:
         """
         Create a DynamoDB table if it doesn't exist
         :param table_name: Name of the table
         :param attribute_definitions: List of attributes definitions (name and type)
         :param key_schema: Key schema for the table (partition and sort keys)
+        :param billing_mode: Billing mode for the table
         :param provisioned_throughput: Provisioned throughput settings (read and write units)
         :return: None
         """
         try:
             existing_tables = [table.name for table in self.ddb.tables.all()]
-            if table_name not in existing_tables:
+            if table_name in existing_tables:
                 self.logger.log("info", f"Table '{table_name}' already exists.")
+                return
 
-            # Create table
-            table = self.ddb.create_table(
-                TableName=table_name,
-                AttributeDefinitions=attribute_definitions,
-                KeySchema=key_schema,
-                ProvisionedThroughput=provisioned_throughput,
-            )
+            # Define table creation parameters
+            table_params = {
+                "TableName": table_name,
+                "AttributeDefinitions": attribute_definitions,
+                "KeySchema": key_schema,
+                "BillingMode": billing_mode,
+            }
+
+            # Add provisioned throughput if billing mode is "PROVISIONED"
+            if billing_mode == "PROVISIONED":
+                if provisioned_throughput is None:
+                    raise ValueError("Provisioned throughput must be specified for PROVISIONED billing mode.")
+                table_params["ProvisionedThroughput"] = provisioned_throughput
+
+            # Create the table
+            table = self.ddb.create_table(**table_params)
 
             # Wait until the table is created
             table.wait_until_exists()
@@ -78,4 +90,14 @@ class DynamoUtil:
             self.logger.log("error", f"Failed to delete table {table_name}: {e}")
             raise
 
-
+    def batch_write(self, table_name: str, items: List[Dict]) -> None:
+        """
+        Batch writing data into table
+        :param table_name: Name of the table to write to.
+        :param items: List of items to write to the table.
+        :return: None
+        """
+        table = self.ddb.Table(table_name)
+        with table.batch_writer() as batch:
+            for item in items:
+                batch.put_item(Item=item)

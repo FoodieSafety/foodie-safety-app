@@ -1,45 +1,24 @@
 import os
-import boto3
-import datetime
-from botocore.exceptions import ClientError
-from food_recall_processor.fetch_food_recalls import formatFoodRecalls
-from typing import List
 from utils.logging_util import Logger
-from datetime import datetime, timedelta
-from uuid import uuid4
-
-# Check if running dynamodb locally
-DYNAMODB_ENDPOINT = "http://host.docker.internal:8000" if os.getenv("AWS_SAM_LOCAL") == "true" else None
-
-# Init Logger
-recall_logger = Logger(name="food_recall_processor", to_file=False)
-
-# time delta
-DELTA = 30
-
-# Init
+from utils.dynamo_util import DynamoUtil
+from food_recall_processor.recall_processor import RecallProcessor
 
 
-def store_data_in_db(table_name: str, recalls: List) -> None:
+def create_table_helper(database: DynamoUtil, table_name: str) -> None:
     """
-    Store formatted recall data into DynamoDB table.
+    Check if table exists, if not, create one
+    :param database: database instance of DynamoUtil
+    :param table_name: name of table
     :return: None
     """
-    table = ddb.Table(table_name)
-    try:
-        with table.batch_writer() as batch:
-            for recall in recalls:
-                # Create unique id
-                recall_id = uuid4().hex
-                # Add identifier to each recall information
-                recall["RecallID"] = recall_id
-
-                # Write to DynamoDB
-                batch.put_item(Item=recall)
-
-        recall_logger.log("info", f"Stored {len(recalls)} recall data to DynamoDB")
-    except ClientError as e:
-        recall_logger.log("error", e)
+    attribute_definitions = [{"AttributeName": "RecallID", "AttributeType": "S"}]
+    key_schema = [{"AttributeName": "RecallID", "KeyType": "HASH"}]
+    database.create_table(
+        table_name,
+        attribute_definitions,
+        key_schema,
+    "PAY_PER_REQUEST"
+    )
 
 def lambda_handler(event, context):
     """
@@ -49,19 +28,30 @@ def lambda_handler(event, context):
     :return: response in JSON format
     """
     table_name = os.getenv("DYNAMODB_TABLE")
-    start_date = (datetime.now() - timedelta(days=DELTA)).strftime("%Y-%m-%d")
-    end_date = datetime.now().strftime("%Y-%m-%d")
+    is_local = os.getenv("AWS_SAM_LOCAL") == "true"
 
-    recalls = formatFoodRecalls(start_date, end_date)
+    # Create db endpoint
+    ddb_endpoint = "http://host.docker.internal:8000" if is_local else None
+    delta = 30 if is_local else 7 # set testing delta as 30
 
+    # Create related instance
+    ddb_util = DynamoUtil(endpoint=ddb_endpoint)
+    logger = Logger(name="recall_processor", to_file=False)
+    processor = RecallProcessor(ddb_util, logger, delta_days=delta)
+
+    # Create table
+    create_table_helper(ddb_util, table_name)
+
+    # Get recalls
+    recalls = processor.get_recall_data()
     if recalls:
-        store_data_in_db(table_name, recalls)
+        processor.store_recall_data(table_name, recalls)
         return {
             "statusCode": 200,
-            "body": f"Stored {len(recalls)} recalls from {start_date} to {end_date}.",
+            "body": f"Stored {len(recalls)} recalls successfully.",
         }
     else:
         return {
-            "statusCode": 400,
-            "body": f"No recall data found from {start_date} to {end_date}.",
+            "statusCode": 204,
+            "body": f"No recall data found.",
         }
