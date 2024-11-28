@@ -3,14 +3,14 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   Get food recall information periodically
 Resources:
-  FoodRecallProcessorFunction:
+  RecallProcessorFunction:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: python3.13
     Properties:
-      Handler: lambda_function.food_recall_processor.lambda_function.lambda_handler
+      Handler: food_recall_processor.lambda_function.lambda_handler
       Runtime: python3.13
-      CodeUri: ./
+      CodeUri: ./lambda
       Timeout: 30
       MemorySize: 200
       Environment:
@@ -18,7 +18,7 @@ Resources:
           DYNAMODB_TABLE: "RecallsTable"         # Environment variable for DynamoDB table
           LOG_LEVEL: "DEBUG"
           PYTHONPATH: "/var/task"                # Include path
-          AWS_SAM_LOCAL: "true"
+          AWS_SAM_LOCAL: "true"                 # "true" if test with local DynamoDB
 #      Events:
 #        ScheduledEvent: # EventBridge rule for periodic invocation
 #          Type: Schedule

@@ -2,25 +2,22 @@ import os
 import boto3
 import datetime
 from botocore.exceptions import ClientError
-from lambda_function.food_recall_processor.fetch_food_recalls import getFoodRecalls, formatFoodRecalls
+from food_recall_processor.fetch_food_recalls import formatFoodRecalls
 from typing import List
-import time
-from backend.utils.common_logging import setup_logger
+from utils.logging_util import Logger
 from datetime import datetime, timedelta
 from uuid import uuid4
 
 # Check if running dynamodb locally
 DYNAMODB_ENDPOINT = "http://host.docker.internal:8000" if os.getenv("AWS_SAM_LOCAL") == "true" else None
 
-# Init dynamodb
-ddb = boto3.resource("dynamodb",
-                     endpoint_url=DYNAMODB_ENDPOINT,
-                     region_name="dummy",
-                     aws_access_key_id="dummy",
-                     aws_secret_access_key="dummy")
-
 # Init Logger
-logger = setup_logger(name="lambda_store_data_in_db", to_file=False)
+recall_logger = Logger(name="food_recall_processor", to_file=False)
+
+# time delta
+DELTA = 30
+
+# Init
 
 
 def store_data_in_db(table_name: str, recalls: List) -> None:
@@ -40,9 +37,9 @@ def store_data_in_db(table_name: str, recalls: List) -> None:
                 # Write to DynamoDB
                 batch.put_item(Item=recall)
 
-        logger.info(f"Stored {len(recalls)} recall data to DynamoDB")
+        recall_logger.log("info", f"Stored {len(recalls)} recall data to DynamoDB")
     except ClientError as e:
-        logger.error(e)
+        recall_logger.log("error", e)
 
 def lambda_handler(event, context):
     """
@@ -52,12 +49,8 @@ def lambda_handler(event, context):
     :return: response in JSON format
     """
     table_name = os.getenv("DYNAMODB_TABLE")
-    start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+    start_date = (datetime.now() - timedelta(days=DELTA)).strftime("%Y-%m-%d")
     end_date = datetime.now().strftime("%Y-%m-%d")
-
-    # test code for local AWS Lambda using SAM
-    # start_date = event["startDate"]
-    # end_date = event["endDate"]
 
     recalls = formatFoodRecalls(start_date, end_date)
 
