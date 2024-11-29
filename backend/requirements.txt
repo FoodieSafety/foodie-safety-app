@@ -1,9 +1,9 @@
 requests
 fastapi[all]
 uvicorn[standard]
-python-dotenv      
-watchtower         
-boto3              
+python-dotenv
+watchtower
+boto3
 pytest
 pytest-asyncio
 sqlalchemy
