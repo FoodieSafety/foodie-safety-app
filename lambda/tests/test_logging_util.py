@@ -3,10 +3,9 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 from io import StringIO
-from lambda_function.utils.logging_util import Logger
+from utils.logging_util import Logger
 import json
 from pythonjsonlogger import jsonlogger
-from unittest.mock import patch, MagicMock
 
 
 class TestLogger(unittest.TestCase):

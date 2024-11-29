@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta
 from typing import List, Dict
 from uuid import uuid4
@@ -62,5 +61,9 @@ class RecallProcessor:
             self.logger.log("info", f"Successfully store {len(recall_data)} recall data.")
 
         except ClientError as e:
+            self.logger.log("error", f"Error storing recall data: {e}")
+            raise
+
+        except Exception as e:
             self.logger.log("error", f"Error storing recall data: {e}")
             raise

@@ -87,7 +87,11 @@ class DynamoUtil:
             self.logger.log("info", f"Table '{table_name}' deleted successfully.")
 
         except ClientError as e:
-            self.logger.log("error", f"Failed to delete table {table_name}: {e}")
+            self.logger.log("error", f"Failed to delete table '{table_name}': {e}")
+            raise
+
+        except Exception as e:
+            self.logger.log("error", f"Failed to delete table '{table_name}': {e}")
             raise
 
     def batch_write(self, table_name: str, items: List[Dict]) -> None:
