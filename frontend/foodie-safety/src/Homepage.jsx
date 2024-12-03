@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import LoginForm from './LoginForm';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import LoginForm from './LoginForm';
 
 const HomePage = ({ user }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [showLoginForm, setShowLoginForm] = useState(false);
+    const navigate = useNavigate();
 
-    const handleLogin = () => {
-        console.log('User logged in');
+    const handleLogin = (formData) => {
+        console.log('User logged in with:', formData);
         setIsLoggedIn(true);
         setShowLoginForm(false);
-    };
+      };
 
     const handleLogout = () => {
         setIsLoggedIn(false);
@@ -25,10 +27,10 @@ const HomePage = ({ user }) => {
     return (
         <div className="container-fluid p-0">
             {/* Navbar */}
-            <Navbar 
-                isLoggedIn={isLoggedIn} 
-                onLogout={handleLogout} 
-                onShowLoginForm={showLoginFormHandler} 
+            <Navbar
+                isLoggedIn={isLoggedIn}
+                onLogout={handleLogout}
+                onShowLoginForm={showLoginFormHandler}
             />
 
             {/* Hero Section */}
@@ -58,9 +60,7 @@ const HomePage = ({ user }) => {
             </div>
 
             {/* Login/Sign-Up Form */}
-            {showLoginForm && !isLoggedIn && (
-                <LoginForm onLogin={handleLogin} />
-            )}
+            {showLoginForm && !isLoggedIn && <LoginForm onLogin={(formData) => handleLogin(formData)} />}
 
             {/* Main Content Section */}
             {!showLoginForm && (

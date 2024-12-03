@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 
-const LoginForm = ({ onLogin }) => {
+const LoginForm = ({ onLogin = () => {} }) => {
     const navigate = useNavigate();
     const [isLoginMode, setIsLoginMode] = useState(true);
     const [formData, setFormData] = useState({
@@ -37,8 +37,7 @@ const LoginForm = ({ onLogin }) => {
         e.preventDefault();
         if (isLoginMode) {
             console.log('Logging in with:', formData);
-            onLogin();
-            navigate('/');
+            onLogin(formData);
         } else {
             if (formData.password !== formData.confirmPassword) {
                 alert('Passwords do not match');
@@ -47,7 +46,7 @@ const LoginForm = ({ onLogin }) => {
             console.log('Signing up with:', formData);
             navigate('/login');
         }
-    };    
+    };
 
     return (
         <div className="container-fluid p-0">
