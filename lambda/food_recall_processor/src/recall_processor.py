@@ -42,11 +42,12 @@ class RecallProcessor:
 
         return recalls
 
-    def store_recall_data(self, table_name: str, recall_data: List[Dict]) -> None:
+    def store_recall_data(self, table_name: str, recall_data: List[Dict], key_attribute: str) -> None:
         """
         Store recall data into DynamoDB table
         :param table_name: DynamoDB table name
         :param recall_data: List of formatted recall data
+        :param key_attribute: Key attribute to check for duplicates
         :return: None
         """
         try:
@@ -57,7 +58,7 @@ class RecallProcessor:
                 recall["RecallID"] = uuid4().hex
 
             # Batch write into table
-            self.database.batch_write(table_name, recall_data)
+            self.database.batch_write(table_name, recall_data, key_attribute)
             self.logger.log("info", f"Successfully store {len(recall_data)} recall data.")
 
         except ClientError as e:

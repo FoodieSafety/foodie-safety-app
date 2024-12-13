@@ -15,19 +15,19 @@ def lambda_handler(event, context):
     :return: response in JSON format
     """
     try:
-        table_name = os.getenv("DYNAMODB_TABLE")
-        if not table_name:
+        recalls_table = os.getenv("DYNAMODB_TABLE")
+        if not recalls_table:
             raise ValueError("DYNAMODB_TABLE environment variable is not set")
         
         # Initialize DynamoDB client
-        dynamo_util = ProdDynamoUtil()
+        prod_dynamo = ProdDynamoUtil()
 
                 # Initialize recall processor
-        recall_processor = RecallProcessor(dynamo_util, logger, DELTA)
+        recall_processor = RecallProcessor(database=prod_dynamo, logger=logger, delta_days=DELTA)
         
         # Process recalls and store in DynamoDB
         recalls = recall_processor.get_recall_data()
-        recall_processor.store_recall_data(table_name, recalls)
+        recall_processor.store_recall_data(table_name=recalls_table, recall_data=recalls, key_attribute="RecallID")
         logger.log("info", f"Successfully processed {len(recalls)} recalls")
         
         return {
