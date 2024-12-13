@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta
-from uuid import uuid4
 from food_recall_processor.src.recall_processor import RecallProcessor
 
 class TestRecallProcessor(unittest.TestCase):

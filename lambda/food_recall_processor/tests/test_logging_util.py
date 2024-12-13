@@ -155,8 +155,6 @@ class TestLogger(unittest.TestCase):
         log_files = os.listdir(self.LOG_DIR)
         self.assertTrue(len(log_files) > 1, "Log rotation should create multiple log files")
 
-    import json
-
     def test_additional_context(self):
         logger = Logger(name="context-test", to_file=False, log_dir=self.LOG_DIR)
 

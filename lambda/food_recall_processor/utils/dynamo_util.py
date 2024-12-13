@@ -94,7 +94,7 @@ class DynamoUtil:
             self.logger.log("error", f"Failed to delete table '{table_name}': {e}")
             raise
 
-    def batch_write(self, table_name: str, items: List[Dict], key_attribute: str) -> None:
+    def insert_to_table(self, table_name: str, items: List[Dict], key_attribute: str = None) -> None:
         """
         Batch writing data into table
         :param table_name: Name of the table to write to.
@@ -103,17 +103,18 @@ class DynamoUtil:
         :return: None
         """
         table = self.ddb.Table(table_name)
-        with table.batch_writer() as batch:
-            for item in items:
-                try:
-                    # Perform duplicate check before insert
-                    table.put_item(
-                        Item=item,
-                        ConditionExpression=f"attribute_not_exists({key_attribute})"
-                    )
-                except ClientError as e:
-                    if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-                        self.logger.log("info", f"Item already exists: {item[key_attribute]}, skipping")
-                    else:
-                        self.logger.log("error", f"Error writing item {item[key_attribute]}: {e}")
-                        raise
+        for item in items:
+            # Check if the item already exists
+            try:
+                response = table.get_item(Key={key_attribute: item[key_attribute]})
+                if "Item" in response:
+                    self.logger.log("info", f"Duplicate item found: {item[key_attribute]}, skipping.")
+                    continue  # Skip duplicate items
+
+                # If no duplicate, write the item
+                with table.batch_writer() as batch:
+                    batch.put_item(Item=item)
+
+            except ClientError as e:
+                self.logger.log("error", f"Error checking or writing item {item[key_attribute]}: {e}")
+                raise
