@@ -8,9 +8,11 @@ Resources:
     Metadata:
       BuildMethod: python3.13
     Properties:
-      Handler: food_recall_processor.lambda_function.lambda_handler
-      Runtime: python3.13
-      CodeUri: ./lambda
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/food-recall-processor:latest"
+      # Handler: food_recall_processor.lambda_function.lambda_handler
+      # Runtime: python3.13
+      # CodeUri: ./lambda
       Timeout: 30
       MemorySize: 200
       Environment:
@@ -18,7 +20,10 @@ Resources:
           DYNAMODB_TABLE: "RecallsTable"         # Environment variable for DynamoDB table
           LOG_LEVEL: "DEBUG"
           PYTHONPATH: "/var/task"                # Include path
-          AWS_SAM_LOCAL: "true"                 # "true" if test with local DynamoDB
+          AWS_SAM_LOCAL: "false"                 # "true" if test with local DynamoDB
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: "Group4-DynamoDB-RecallsTable"
 #      Events:
 #        ScheduledEvent: # EventBridge rule for periodic invocation
 #          Type: Schedule
