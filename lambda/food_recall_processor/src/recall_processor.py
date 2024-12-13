@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 from typing import List, Dict
 from uuid import uuid4
 from botocore.exceptions import ClientError
-from food_recall_processor.fetch_food_recalls import formatFoodRecalls
-from utils.logging_util import Logger
-from utils.dynamo_util import DynamoUtil
+from food_recall_processor.src.fetch_food_recalls import formatFoodRecalls
+from food_recall_processor.utils.logging_util import Logger
+from food_recall_processor.utils.dynamo_util import DynamoUtil
 
 class RecallProcessor:
     def __init__(self, database: DynamoUtil, logger: Logger, delta_days: int = 7):

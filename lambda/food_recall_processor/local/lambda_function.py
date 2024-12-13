@@ -1,7 +1,7 @@
 import os
-from utils.logging_util import Logger
-from utils.dynamo_util import DynamoUtil
-from food_recall_processor.recall_processor import RecallProcessor
+from food_recall_processor.utils.logging_util import Logger
+from food_recall_processor.utils.dynamo_util import DynamoUtil
+from food_recall_processor.src.recall_processor import RecallProcessor
 
 
 def create_table_helper(database: DynamoUtil, table_name: str) -> None:
