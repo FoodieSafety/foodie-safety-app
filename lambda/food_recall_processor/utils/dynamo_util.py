@@ -106,15 +106,17 @@ class DynamoUtil:
         for item in items:
             # Check if the item already exists
             try:
-                response = table.get_item(Key={key_attribute: item[key_attribute]})
-                if "Item" in response:
-                    self.logger.log("info", f"Duplicate item found: {item[key_attribute]}, skipping.")
-                    continue  # Skip duplicate items
-
-                # If no duplicate, write the item
-                with table.batch_writer() as batch:
-                    batch.put_item(Item=item)
+                table.put_item(
+                    Item=item,
+                    ConditionExpression=f"attribute_not_exists({key_attribute})"
+                )
 
             except ClientError as e:
-                self.logger.log("error", f"Error checking or writing item {item[key_attribute]}: {e}")
-                raise
+                if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                    # Log if the item already exists
+                    self.logger.log("info", f"Item already exists: {item[key_attribute]}, skipping")
+                else:
+                    # Log and re-raise other errors
+                    self.logger.log("error", f"Error writing item {item[key_attribute]}: {e}")
+                    raise
+

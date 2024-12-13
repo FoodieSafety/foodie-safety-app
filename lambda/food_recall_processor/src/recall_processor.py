@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import List, Dict
-from uuid import uuid4
+import hashlib
 from botocore.exceptions import ClientError
 from food_recall_processor.src.fetch_food_recalls import formatFoodRecalls
 from food_recall_processor.utils.logging_util import Logger
@@ -21,12 +21,25 @@ class RecallProcessor:
         self.start_time = (datetime.now() - timedelta(days=self.delta_days)).strftime("%Y-%m-%d")
         self.end_time = datetime.now().strftime("%Y-%m-%d")
 
+    def generate_recall_id(self, recall: Dict):
+        """
+        Generate unique recall ID using recall data
+        :param recall: single recall data
+        :return: hashed recall ID
+        """
+        unique_data = (f"{recall.get("Recalling Firm", "")}"
+                       f"{recall.get("Product Description", "")}"
+                       f"{recall.get("Report Date", "")}")
+
+        return hashlib.sha256(unique_data.encode("utf-8")).hexdigest()
+
+
+
     def get_recall_data(self) -> List[Dict]:
         """
         Fetch food recalls data within a specific time range
         :return: List of formatted recall data
         """
-
         # Get recalls data
         recalls = formatFoodRecalls(self.start_time, self.end_time)
         if recalls:
@@ -54,8 +67,8 @@ class RecallProcessor:
             self.logger.log("info", f"Storing {len(recall_data)} recall data to table '{table_name}'.")
 
             for recall in recall_data:
-                # Create unique id
-                recall["RecallID"] = uuid4().hex
+                # Create unique id for each recall
+                recall["RecallID"] = self.generate_recall_id(recall)
 
             # Batch write into table
             self.database.insert_to_table(table_name, recall_data, key_attribute)
