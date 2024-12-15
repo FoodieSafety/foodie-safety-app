@@ -2,12 +2,12 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
-class CreateUserRequest(BaseModel):
+class UserRequest(BaseModel):
     username: str
     email: str
     password: str
 
-class CreateUserResponse(BaseModel):
+class UserResponse(BaseModel):
     id: int
     username: str
     email: str

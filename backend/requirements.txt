@@ -8,3 +8,5 @@ pytest
 pytest-asyncio
 sqlalchemy
 python-json-logger
+pymysql
+DBUtils

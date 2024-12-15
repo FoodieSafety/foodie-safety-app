@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from backend.middlewares.logging_middleware import log_requests
-from starlette.middleware.base import BaseHTTPMiddleware
-
+from backend.app.views.user_view import router as user_router
 # Create a FastAPI instance
 app = FastAPI()
 
 # Add middleware
-app.add_middleware(BaseHTTPMiddleware, dispatch=log_requests)
+app.middleware("http")(log_requests)
 
 # Include Routers
+app.include_router(user_router)
 
 @app.get("/")
 async def index() -> dict:
