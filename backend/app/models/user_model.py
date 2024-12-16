@@ -4,8 +4,11 @@ from fastapi import HTTPException, status
 from backend.app.util.schemas import UserCreate, UserResponse
 from backend.app.util.models import Base, User
 from backend.app.util.database import engine
+from passlib.context import CryptContext
 
-
+# Ecrypt password
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Bind engine to metadata and create all tables
 Base.metadata.create_all(bind=engine)
 
 class UserModel:
@@ -27,6 +30,9 @@ class UserModel:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists")
             if existing_user.email == user.email:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+
+        # Hash password and store it back
+        user.password = pwd_context.hash(user.password)
 
         # valid user, create
         new_user = User(**user.model_dump())

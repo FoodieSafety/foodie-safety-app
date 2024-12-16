@@ -10,3 +10,5 @@ sqlalchemy
 python-json-logger
 pymysql
 DBUtils
+passlib
+bcrypt
