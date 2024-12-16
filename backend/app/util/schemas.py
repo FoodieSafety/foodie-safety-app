@@ -1,16 +1,18 @@
-from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from sqlalchemy import BIGINT
 
 
 class UserBase(BaseModel):
     username: str
-    email: str
-    created_at: datetime
+    email: EmailStr
 
 class UserCreate(UserBase):
     password: str
 
 class UserResponse(UserBase):
+    created_at: datetime
+
+class UserUpdate(UserBase):
     pass
+
+
