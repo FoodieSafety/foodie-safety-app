@@ -12,3 +12,5 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
+class UserResponse(UserBase):
+    pass

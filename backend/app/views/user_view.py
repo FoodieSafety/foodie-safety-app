@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List
-from backend.app.util.schemas import UserRequest, UserResponse
+from backend.app.util.schemas import UserCreate, UserResponse
 from backend.app.controllers.user_controller import UserController
 
 router = APIRouter(prefix="/users", tags=["users"])

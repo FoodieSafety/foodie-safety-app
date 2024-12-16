@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from typing import List
-from backend.app.util.schemas import UserResponse, UserRequest
+from backend.app.util.schemas import UserCreate, UserResponse
 from backend.app.models.user_model import UserModel
 
 

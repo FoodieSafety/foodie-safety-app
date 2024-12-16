@@ -1,4 +1,3 @@
-from backend.app.util.database import get_connection
 from typing import List
 
 
@@ -9,10 +8,7 @@ class UserModel:
         Get all users from the database
         :return: all users
         """
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM users")
-                return cur.fetchall()
+        pass
 
     @staticmethod
     def get_user_by_id(user_id: int) -> dict:
@@ -21,9 +17,4 @@ class UserModel:
         :param user_id: the ID of the user
         :return: the user
         """
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM users WHERE user_id = %s", (user_id))
-                return cur.fetchone()
-
-
+        pass
