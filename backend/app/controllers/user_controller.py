@@ -1,12 +1,14 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
 from typing import List
 from backend.app.util.schemas import UserCreate, UserResponse
 from backend.app.models.user_model import UserModel
 
 
 class UserController:
-
+    """
+    Controller for CRUD operations on User object
+    and passing response from model to view
+    """
     @staticmethod
     def create_user(user: UserCreate, db: Session) -> UserResponse:
         return UserModel.create_user(user, db)

@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from fastapi import HTTPException, status
 from backend.app.util.schemas import UserCreate, UserResponse
-from backend.app.util.models import Base, User
+from backend.app.util.base_models import Base, User
 from backend.app.util.database import engine
 from backend.app.util.hash import hash_password
 
@@ -10,7 +10,10 @@ from backend.app.util.hash import hash_password
 Base.metadata.create_all(bind=engine)
 
 class UserModel:
-
+    """
+    Talk to the database and perform CRUD operations on User object
+    and return the response to the controller
+    """
     @staticmethod
     def create_user(user: UserCreate, db: Session) -> UserResponse:
         """
@@ -60,5 +63,5 @@ class UserModel:
         """
         user = db.query(User).filter(User.user_id == user_id).first()
         if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {user_id} not found")
         return UserResponse(**user.__dict__)

@@ -13,6 +13,6 @@ class UserResponse(UserBase):
     created_at: datetime
 
 class UserUpdate(UserBase):
-    pass
+    updated_at: datetime
 
 
