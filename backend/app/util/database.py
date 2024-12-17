@@ -6,8 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Load environment variables
-dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
-load_dotenv(dotenv_path=dotenv_path)
+load_dotenv()
 
 # Create MySQL database connection URL
 MYSQL_URL = (f"mysql+pymysql://{os.getenv('MYSQL_USER')}:"
