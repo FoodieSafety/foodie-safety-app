@@ -24,6 +24,8 @@ class User(Base):
     # Relationship with login_activities table
     login_activities = relationship("LoginActivity", back_populates="user", cascade="all, delete-orphan")
 
+    def __repr__(self):
+        return f"<User(user_id={self.user_id}, username='{self.username}', email='{self.email}')>"
 
 class LoginActivity(Base):
     __tablename__ = "login_activities"
