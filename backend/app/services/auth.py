@@ -34,9 +34,7 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     # Create JWT token
     access_token = create_access_token(
         source_data={
-            "user_id": user.user_id,
-            "username": user.username,
-            "email": user.email
+            "sub": user.user_id
         })
 
     return {

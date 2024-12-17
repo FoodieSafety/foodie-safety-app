@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-
+from typing import Optional
 
 class UserBase(BaseModel):
     username: str
@@ -17,3 +17,14 @@ class UserUpdate(UserBase):
 
 class UserLogin(UserBase):
     password: str
+
+# For validating token
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+# The data to embed in the token
+class TokenData(BaseModel):
+    user_id: Optional[str]
+    username: Optional[str]
+    email: Optional[EmailStr]
