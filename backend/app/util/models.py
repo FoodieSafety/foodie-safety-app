@@ -2,7 +2,6 @@ from sqlalchemy import Column, String, TIMESTAMP, BigInteger, ForeignKey, Enum, 
 from sqlalchemy.sql.expression import text
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
 
 Base = declarative_base()
 
