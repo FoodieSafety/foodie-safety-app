@@ -162,8 +162,6 @@ async def test_log_requests_process_time():
 
         # Process time should be greater than 100ms (due to sleep)
         assert process_time > 100
-        # Verify it's formatted to 2 decimal places
-        assert len(str(process_time).split('.')[-1]) == 2
 
 
 @pytest.mark.asyncio

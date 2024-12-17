@@ -87,16 +87,19 @@ class TestDynamoUtil(unittest.TestCase):
 
     def test_batch_write(self):
         mock_table = MagicMock()
-        mock_batch_writer = MagicMock()
         self.mock_ddb.Table.return_value = mock_table
-        mock_table.batch_writer.return_value.__enter__.return_value = mock_batch_writer
 
-        # Call batch_write
+        # Call insert_to_table
         items = [{"ID": "1", "Name": "Name1"}, {"ID": "2", "Name": "Name2"}]
-        self.dynamo_util.insert_to_table("TestTable", items)
+        self.dynamo_util.insert_to_table("TestTable", items, key_attribute="ID")
 
-        # Check result
+        # Verify that put_item is called for each item
         self.mock_ddb.Table.assert_called_once_with("TestTable")
-        mock_table.batch_writer.assert_called_once()
-        mock_batch_writer.put_item.assert_any_call(Item=items[0])
-        mock_batch_writer.put_item.assert_any_call(Item=items[1])
+        mock_table.put_item.assert_any_call(
+            Item={"ID": "1", "Name": "Name1"},
+            ConditionExpression="attribute_not_exists(ID)"
+        )
+        mock_table.put_item.assert_any_call(
+            Item={"ID": "2", "Name": "Name2"},
+            ConditionExpression="attribute_not_exists(ID)"
+        )
