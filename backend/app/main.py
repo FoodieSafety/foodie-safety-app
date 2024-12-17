@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from backend.middlewares.logging_middleware import log_requests
-from backend.app.services.user_view import router as user_router
-from backend.app.services.auth import router as auth_router
+from ..middlewares.logging_middleware import log_requests
+from .services.user_service import router as user_router
+from .services.auth import router as auth_router
 # Create a FastAPI instance
 app = FastAPI()
 
