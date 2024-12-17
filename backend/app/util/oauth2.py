@@ -36,7 +36,7 @@ def create_access_token(source_data: dict, expire_delta: timedelta = None):
     to_encode.update({"exp": expire_time})
 
     # Create the JWT token
-    encoded_jwt = jwt.encode(to_encode, os.getenv("SECRET_KEY"), algorithm=[os.getenv("ALGORITHM")])
+    encoded_jwt = jwt.encode(to_encode, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
 
     return encoded_jwt
 
@@ -44,7 +44,7 @@ def create_access_token(source_data: dict, expire_delta: timedelta = None):
 def validate_access_token(token: str, credential_exception):
     try:
         # Decode the token
-        payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
+        payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=os.getenv("ALGORITHM"))
 
         # Check if the payload contains the required fields
         user_id = payload.get("sub")
