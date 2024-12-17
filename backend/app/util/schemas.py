@@ -15,4 +15,7 @@ class UserResponse(UserBase):
 class UserUpdate(UserBase):
     updated_at: datetime
 
-
+class UserLogin(BaseModel):
+    username: str
+    email: EmailStr
+    password: str

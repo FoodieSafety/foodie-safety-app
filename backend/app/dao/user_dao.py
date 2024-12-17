@@ -1,15 +1,16 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from typing import List
 from fastapi import HTTPException, status
 from backend.app.util.schemas import UserCreate, UserResponse
-from backend.app.util.base_models import Base, User
+from backend.app.util.models import Base, User
 from backend.app.util.database import engine
 from backend.app.util.hash import hash_password
 
 # Bind engine to metadata and create all tables
 Base.metadata.create_all(bind=engine)
 
-class UserModel:
+class UserDao:
     """
     Talk to the database and perform CRUD operations on User object
     and return the response to the controller
@@ -24,7 +25,11 @@ class UserModel:
         """
         # Check duplication in username or email
         existing_user = db.query(User).filter(
-            User.username == user.username or User.email == user.email).first()
+            or_(
+                User.username == user.username,
+                User.email == user.email
+            )
+        ).first()
 
         if existing_user:
             if existing_user.username == user.username:

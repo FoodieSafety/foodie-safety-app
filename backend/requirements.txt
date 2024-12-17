@@ -11,4 +11,4 @@ python-json-logger
 pymysql
 DBUtils
 passlib
-bcrypt
+bcrypt==4.0.1 # This is the version that works with passlib

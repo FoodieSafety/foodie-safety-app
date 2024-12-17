@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from backend.middlewares.logging_middleware import log_requests
 from backend.app.views.user_view import router as user_router
-
+from backend.app.views.auth import router as auth_router
 # Create a FastAPI instance
 app = FastAPI()
 
@@ -10,6 +10,7 @@ app.middleware("http")(log_requests)
 
 # Include Routers
 app.include_router(user_router)
+app.include_router(auth_router)
 
 @app.get("/")
 async def index() -> dict:
