@@ -46,9 +46,9 @@ def update_user(
 ):
     """
     Update user by id
-    :param user_id: input user id
     :param user: input user JSON
     :param db: session object
+    :param token_data: token
     :return: response
     """
     return UserController.update_user(user, db, token_data)
@@ -60,8 +60,8 @@ def delete_user(
 ):
     """
     Delete user by id
-    :param user_id: input user id
     :param db: session object
+    :param token_data: token
     :return: response
     """
     return UserController.delete_user(db, token_data)

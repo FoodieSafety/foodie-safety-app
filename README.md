@@ -7,7 +7,7 @@
 - The following two links are the API documentation for the backend services (source code is the same)
 - Testing can be done within the documentation
 - Link 1 (AWS EC2): http://54.176.228.18/docs
-- Link 2 (Render): https://fastapi-backend-latest.onrender.com/docs 
+- Link 2 (Render): https://demo-7vuv.onrender.com/docs 
 
 # Local environment setup
 
