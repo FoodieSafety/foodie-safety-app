@@ -1,11 +1,18 @@
 from fastapi import FastAPI
-from backend.middlewares.logging_middleware import log_requests
-from starlette.middleware.base import BaseHTTPMiddleware
-
+from ..middlewares.logging_middleware import log_requests
+from .services.user_service import router as user_router
+from .services.auth import router as auth_router
+# Create a FastAPI instance
 app = FastAPI()
-app.add_middleware(BaseHTTPMiddleware, dispatch=log_requests)
 
-@app.get("/index")
+# Add middleware
+app.middleware("http")(log_requests)
+
+# Include Routers
+app.include_router(user_router)
+app.include_router(auth_router)
+
+@app.get("/")
 async def index() -> dict:
-    return {"message": "Hello World"}
+    return {"message": "Welcome to Foodie-Safety!"}
 
