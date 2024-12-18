@@ -1,6 +1,6 @@
 import boto3
 from botocore.exceptions import ClientError
-from utils.logging_util import Logger
+from food_recall_processor.utils.logging_util import Logger
 from typing import Optional, List, Dict
 
 class DynamoUtil:
@@ -94,14 +94,29 @@ class DynamoUtil:
             self.logger.log("error", f"Failed to delete table '{table_name}': {e}")
             raise
 
-    def batch_write(self, table_name: str, items: List[Dict]) -> None:
+    def insert_to_table(self, table_name: str, items: List[Dict], key_attribute: str = None) -> None:
         """
         Batch writing data into table
         :param table_name: Name of the table to write to.
         :param items: List of items to write to the table.
+        :param key_attribute: Key attribute to check for duplicates
         :return: None
         """
         table = self.ddb.Table(table_name)
-        with table.batch_writer() as batch:
-            for item in items:
-                batch.put_item(Item=item)
+        for item in items:
+            # Check if the item already exists
+            try:
+                table.put_item(
+                    Item=item,
+                    ConditionExpression=f"attribute_not_exists({key_attribute})"
+                )
+
+            except ClientError as e:
+                if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                    # Log if the item already exists
+                    self.logger.log("info", f"Item already exists: {item[key_attribute]}, skipping")
+                else:
+                    # Log and re-raise other errors
+                    self.logger.log("error", f"Error writing item {item[key_attribute]}: {e}")
+                    raise
+

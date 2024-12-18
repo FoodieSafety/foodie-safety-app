@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from utils.dynamo_util import DynamoUtil
+from food_recall_processor.utils.dynamo_util import DynamoUtil
 
 class TestDynamoUtil(unittest.TestCase):
     def setUp(self):
@@ -93,7 +93,7 @@ class TestDynamoUtil(unittest.TestCase):
 
         # Call batch_write
         items = [{"ID": "1", "Name": "Name1"}, {"ID": "2", "Name": "Name2"}]
-        self.dynamo_util.batch_write("TestTable", items)
+        self.dynamo_util.insert_to_table("TestTable", items)
 
         # Check result
         self.mock_ddb.Table.assert_called_once_with("TestTable")

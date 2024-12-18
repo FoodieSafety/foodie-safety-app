@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from food_recall_processor.lambda_function import lambda_handler, create_table_helper
+from food_recall_processor.local.lambda_function import lambda_handler, create_table_helper
 
 class TestLambdaFunction(unittest.TestCase):
 

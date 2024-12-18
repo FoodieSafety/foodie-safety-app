@@ -3,7 +3,7 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 from io import StringIO
-from utils.logging_util import Logger
+from food_recall_processor.utils.logging_util import Logger
 import json
 from pythonjsonlogger import jsonlogger
 
@@ -154,8 +154,6 @@ class TestLogger(unittest.TestCase):
 
         log_files = os.listdir(self.LOG_DIR)
         self.assertTrue(len(log_files) > 1, "Log rotation should create multiple log files")
-
-    import json
 
     def test_additional_context(self):
         logger = Logger(name="context-test", to_file=False, log_dir=self.LOG_DIR)
