@@ -2,6 +2,13 @@
 
 - Ensure Python 3.13.0 is installed before cloning the repo
 
+# Backend API Documentation
+
+- The following two links are the API documentation for the backend services (source code is the same)
+- Testing can be done within the documentation
+- Link 1 (AWS EC2): http://54.176.228.18/docs
+- Link 2 (Render): https://fastapi-backend-latest.onrender.com/docs 
+
 # Local environment setup
 
 1. Navigate to backend directory
