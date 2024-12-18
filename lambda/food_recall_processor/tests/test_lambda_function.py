@@ -4,9 +4,9 @@ from food_recall_processor.local.lambda_function import lambda_handler, create_t
 
 class TestLambdaFunction(unittest.TestCase):
 
-    @patch("food_recall_processor.lambda_function.RecallProcessor")
-    @patch("food_recall_processor.lambda_function.DynamoUtil")
-    @patch("food_recall_processor.lambda_function.Logger")
+    @patch("food_recall_processor.local.lambda_function.RecallProcessor")
+    @patch("food_recall_processor.local.lambda_function.DynamoUtil")
+    @patch("food_recall_processor.local.lambda_function.Logger")
     @patch("os.getenv")
     def test_lambda_handler_with_recalls(
         self, mock_getenv, mock_logger, mock_dynamo_util, mock_recall_processor
@@ -50,9 +50,9 @@ class TestLambdaFunction(unittest.TestCase):
             response["body"], "Stored 2 recalls successfully."
         )
 
-    @patch("food_recall_processor.lambda_function.RecallProcessor")
-    @patch("food_recall_processor.lambda_function.DynamoUtil")
-    @patch("food_recall_processor.lambda_function.Logger")
+    @patch("food_recall_processor.local.lambda_function.RecallProcessor")
+    @patch("food_recall_processor.local.lambda_function.DynamoUtil")
+    @patch("food_recall_processor.local.lambda_function.Logger")
     @patch("os.getenv")
     def test_lambda_handler_no_recalls(
             self, mock_getenv, mock_logger, mock_dynamo_util, mock_recall_processor
@@ -86,7 +86,7 @@ class TestLambdaFunction(unittest.TestCase):
             response["body"], "No recall data found."
         )
 
-    @patch("food_recall_processor.lambda_function.DynamoUtil")
+    @patch("food_recall_processor.local.lambda_function.DynamoUtil")
     def test_create_table_helper(self, mock_dynamo_util):
         # Mock DynamoUtil instance
         mock_ddb_util_instance = MagicMock()
