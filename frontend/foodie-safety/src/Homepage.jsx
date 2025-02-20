@@ -1,77 +1,112 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import BarcodeScanner from './BarcodeScanner';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
-const HomePage = ({ user, isLoggedIn, onLogout }) => {
+const HomePage = ({user, isLoggedIn, onLogout}) => {
+    const navigate = useNavigate();
     return (
-        <div className="container-fluid p-0">
+        <div>
             {/* Navbar */}
             <Navbar isLoggedIn={isLoggedIn} onLogout={onLogout} onShowLoginForm={() => window.location.href = '/login'} />
 
             {/* Hero Section */}
-            {!isLoggedIn ? (
-                <div
-                    className="hero-section text-center py-5"
-                    style={{ backgroundColor: '#BDE3FF' }}
-                >
-                    <div
-                        className="circle-icon d-flex justify-content-center align-items-center my-3 mt-n3 bg-light text-dark rounded-circle"
-                        style={{ width: '75px', height: '75px' }}
-                    >
-                        <strong>Foodie Safety</strong>
-                    </div>
-                    <h1>Want to stay up-to-date on food recall and food <br /> safety information? Click below to subscribe now!</h1>
-                    <button className="btn btn-light mt-3 px-4">
-                        Subscribe
-                    </button>
+            <div className="hero-section text-center py-5" style={{ backgroundColor: isLoggedIn ? '#FFD700' : '#BDE3FF' }}>
+                <div className="circle-icon d-flex justify-content-center align-items-center my-3 bg-light text-dark rounded-circle"
+                     style={{ width: '75px', height: '75px' }}>
+                    <strong>Foodie Safety</strong>
                 </div>
-            ) : (    
-                <div
-                    className="hero-section text-center py-5"
-                    style={{ backgroundColor: '#BDE3FF' }}
-                >
-                    <div
-                        className="circle-icon d-flex justify-content-center align-items-center my-3 mt-n3 bg-light text-dark rounded-circle"
-                        style={{ width: '75px', height: '75px' }}    
-                    >
-                        <strong>Foodie Safety</strong>  
+                {isLoggedIn ? (
+                    <>
+                        <h1>Welcome Back, {user}!</h1>
+                        <p>Your latest food safety updates at a glance.</p>
+                        <button className="btn btn-light mt-3 px-4" onClick={() => navigate('/subscriptions')}>
+                            Manage Subscriptions
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <h1>Want to stay up-to-date on food recall and food <br /> safety information?</h1>
+                        <p>Click below to subscribe now and Sign up for alerts and get the latest food safety news.</p>
+                        <button className="btn btn-light mt-3 px-4" onClick={() => navigate('/sign-up')}>Subscribe</button>
+                    </>
+                )}
+            </div>
+
+            {/* Features Section */}
+            {isLoggedIn ? (
+                <div className="container text-center my-5">
+                    <h3>Your Dashboard</h3>
+                    <div className="row mt-4">
+                        <div className="col-md-4">
+                            <button className="btn btn-dark w-100" onClick={() => navigate('/my-products')}>View My Products</button>
+                        </div>
+                        <div className="col-md-4">
+                            <button className="btn btn-dark w-100" onClick={() => navigate('/settings')}>Settings</button>
+                        </div>
+                        <div className="col-md-4">
+                            <button className="btn btn-dark w-100" onClick={() => navigate('/recipes')}>Generate Recipes</button>
+                        </div>
                     </div>
-                    <h1>Welcome, {user}</h1>
-                </div> 
+                </div>
+            ) : (
+                <div className="container text-center my-5">
+                    <h3>Why Join Foodie Safety?</h3>
+                    <p>Receive personalized alerts, track your food purchases, and stay ahead of food recalls.</p>
+                </div>
             )}
 
-            {/* Main Content Section */}
-            {isLoggedIn ? (
-                <>
-                    {/* Content for logged-in users */}
-                    <div className="row text-center mt-4 bg-white py-5">
-                        <div className="col-md-4 d-flex flex-column align-items-center">
-                            <button className="btn btn-dark w-auto px-4 mb-3">Products</button>
-                            <div className="border border-dark p-3 text-center mb-3">
+            {/* Recall Statistics Section */}
+            <div className="row text-center mt-4 bg-white py-5">
+                {isLoggedIn ? (
+                    <>
+                        <div className="col-md-4">
+                            <div className="border border-dark p-3">
+                                <h4>📢 Recent Recall Alerts</h4>
+                                <p>Check the latest recalls affecting your saved products.</p>
+                                <button className="btn btn-warning" onClick={() => navigate('/recalls')}>View Recalls</button>
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="border border-dark p-3">
+                                <h4>🔍 Your Scan History</h4>
+                                <p>See past scans and flagged items.</p>
+                                <button className="btn btn-warning" onClick={() => navigate('/history')}>View History</button>
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="border border-dark p-3">
+                                <h4>💡 Personalized Tips</h4>
+                                <p>Stay safe with food storage & handling recommendations.</p>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="col-md-4">
+                            <div className="border border-dark p-3">
+                                <h4>🚨 8% Increase in Recalls (2023)</h4>
                                 <p>
                                     In 2023, there was an <strong>8% increase</strong> in food and
                                     beverage recalls with recalls from the United States Department
                                     of Agriculture (USDA) relating to meat, poultry, and eggs.
                                 </p>
                             </div>
-                            <p className="text-muted">Text goes here</p>
                         </div>
-                        <div className="col-md-4 d-flex flex-column align-items-center">
-                            <button className="btn btn-dark w-auto px-4 mb-3">Settings</button>
-                            <div className="border border-dark p-3 text-center mb-3">
+                        <div className="col-md-4">
+                            <div className="border border-dark p-3">
+                                <h4>⚠️ FDA Recalls Hit 10-Year High</h4>
                                 <p>
                                     According to the FDA, food recalls in 2022 reached a{' '}
                                     <strong>10-year high</strong>.
                                 </p>
                             </div>
-                            <p className="text-muted">Text goes here</p>
                         </div>
-                        <div className="col-md-4 d-flex flex-column align-items-center">
-                            <button className="btn btn-dark w-auto px-4 mb-3">
-                                Generate Recipes Using My Products
-                            </button>
-                            <div className="border border-dark p-3 text-center mb-3">
+                        <div className="col-md-4">
+                            <div className="border border-dark p-3">
+                                <h4>🍽️ Foodborne Illness Impact</h4>
                                 <p>
                                     CDC estimates <strong>48 million people</strong> get sick,{' '}
                                     <strong>128,000</strong> are hospitalized, and{' '}
@@ -79,46 +114,17 @@ const HomePage = ({ user, isLoggedIn, onLogout }) => {
                                     the United States.
                                 </p>
                             </div>
-                            <p className="text-muted">Text goes here</p>
                         </div>
-                    </div>
-                </>
-            ) : (
-                <>
-                    {/* Default content for non-logged-in users */}
-                    <div className="row text-center mt-4 bg-white py-5">
-                        <div className="col-md-4 d-flex flex-column align-items-center">
-                            <div className="border border-dark p-3 text-center mb-3">
-                                <p>
-                                    In 2023, there was an <strong>8% increase</strong> in food and
-                                    beverage recalls with recalls from the United States Department
-                                    of Agriculture (USDA) relating to meat, poultry, and eggs.
-                                </p>
-                            </div>
-                            <p className="text-muted">Text goes here</p>
-                        </div>
-                        <div className="col-md-4 d-flex flex-column align-items-center">
-                            <div className="border border-dark p-3 text-center mb-3">
-                                <p>
-                                    According to the FDA, food recalls in 2022 reached a{' '}
-                                    <strong>10-year high</strong>.
-                                </p>
-                            </div>
-                            <p className="text-muted">Text goes here</p>
-                        </div>
-                        <div className="col-md-4 d-flex flex-column align-items-center">
-                            <div className="border border-dark p-3 text-center mb-3">
-                                <p>
-                                    CDC estimates <strong>48 million people</strong> get sick,{' '}
-                                    <strong>128,000</strong> are hospitalized, and{' '}
-                                    <strong>3,000</strong> die from foodborne diseases each year in
-                                    the United States.
-                                </p>
-                            </div>
-                            <p className="text-muted">Text goes here</p>
-                        </div>
-                    </div>
-                </>
+                    </>
+                )}
+            </div>
+
+            {/* Show Barcode Scanner for Logged-in Users Only */}
+            {isLoggedIn && (
+                <div className="container text-center my-5">
+                    <h3>Scan a Product Barcode</h3>
+                    <BarcodeScanner />
+                </div>
             )}
         </div>
     );

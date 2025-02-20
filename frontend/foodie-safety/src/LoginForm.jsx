@@ -14,6 +14,7 @@ const LoginForm = ({ onLogin }) => {
     email: '',
     password: '',
     confirmPassword: '',
+    zipCode: '',  // Added Zip Code field
   });
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -23,13 +24,13 @@ const LoginForm = ({ onLogin }) => {
     } else if (location.pathname !== '/login' && isLoginMode) {
       setIsLoginMode(false);
     }
-  
+
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (currentUser && currentUser !== currentUser) {
       setCurrentUser(currentUser);
       onLogin(currentUser);
     }
-  }, [location.pathname, onLogin, isLoginMode, currentUser]);  
+  }, [location.pathname, onLogin, isLoginMode, currentUser]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -72,6 +73,7 @@ const LoginForm = ({ onLogin }) => {
         LastName: formData.LastName,
         email: formData.email,
         password: formData.password,
+        zipCode: formData.zipCode,  // Storing Zip Code
       };
 
       const savedUsers = JSON.parse(localStorage.getItem('users')) || [];
@@ -117,6 +119,17 @@ const LoginForm = ({ onLogin }) => {
                         className="form-control"
                         name="LastName"
                         value={formData.LastName}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Zip Code</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="zipCode"
+                        value={formData.zipCode}
                         onChange={handleInputChange}
                         required
                       />
