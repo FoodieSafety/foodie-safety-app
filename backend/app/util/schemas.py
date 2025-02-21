@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 from datetime import datetime
 from typing import Optional
+from fastapi import UploadFile
 
 class UserBase(BaseModel):
     username: str
@@ -26,3 +27,26 @@ class Token(BaseModel):
 # The data to embed in the token
 class TokenData(BaseModel):
     user_id: Optional[int]
+
+# The data to store files
+class FileBase(BaseModel):
+    filestream: UploadFile
+
+
+class ImageBase(FileBase):
+    @validator('filestream')
+    def validate_image(cls, filestream):
+        if filestream.content_type not in ["image/png", "image/jpg"]:
+            raise ValueError(f"Invalid image type: {filestream.content_type}")
+        return filestream
+
+# Barcode Information
+class Barcode(BaseModel):
+    type: str
+    code: str
+
+# The base product information
+class ProductBase(BaseModel):
+    barcode: Barcode
+    name: str
+    brand: str

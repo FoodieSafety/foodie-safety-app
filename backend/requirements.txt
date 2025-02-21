@@ -13,3 +13,6 @@ DBUtils
 passlib
 bcrypt==4.0.1 # This is the version that works with passlib
 pyjwt
+opencv-python
+pyzbar
+numpy
