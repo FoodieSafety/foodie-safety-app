@@ -4,6 +4,7 @@ import HomePage from "./Homepage";
 import LoginForm from "./LoginForm";
 import Subscription from "./Subscription";
 import AccountPage from "./AccountPage";
+import NewsletterForm from "./Newsform";
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -55,20 +56,12 @@ const App = () => {
 
         {/* Subscription Page - Restricted to Logged-in Users */}
         <Route path="/subscriptions" element={isLoggedIn ? <Subscription /> : <Navigate to="/" />} />
+        
+        {/* Newsletter Form - Restricted to Non-Logged-in Users */}
+        <Route path="/newsletter" element={!isLoggedIn ? <NewsletterForm /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   );
 };
-
-// Placeholder for UserProfile Component
-const UserProfile = ({ user, onLogout }) => (
-  <div className="container mt-4">
-    <h2>Welcome, {user?.FirstName}!</h2>
-    <p>Email: {user?.Email}</p>
-    <button className="btn btn-danger" onClick={onLogout}>
-      Log Out
-    </button>
-  </div>
-);
 
 export default App;

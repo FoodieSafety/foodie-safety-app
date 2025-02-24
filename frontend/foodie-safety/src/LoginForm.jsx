@@ -14,7 +14,7 @@ const LoginForm = ({ onLogin }) => {
     email: '',
     password: '',
     confirmPassword: '',
-    zipCode: '',  // Added Zip Code field
+    zipCode: '',
   });
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -25,10 +25,10 @@ const LoginForm = ({ onLogin }) => {
       setIsLoginMode(false);
     }
 
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (currentUser && currentUser !== currentUser) {
-      setCurrentUser(currentUser);
-      onLogin(currentUser);
+    const storedUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (storedUser) {
+      setCurrentUser(storedUser);
+      onLogin(storedUser);
     }
   }, [location.pathname, onLogin, isLoginMode, currentUser]);
 
@@ -73,7 +73,7 @@ const LoginForm = ({ onLogin }) => {
         LastName: formData.LastName,
         email: formData.email,
         password: formData.password,
-        zipCode: formData.zipCode,  // Storing Zip Code
+        zipCode: formData.zipCode,
       };
 
       const savedUsers = JSON.parse(localStorage.getItem('users')) || [];
@@ -98,6 +98,17 @@ const LoginForm = ({ onLogin }) => {
           <div className="card my-5">
             <div className="card-body">
               <h2 className="text-center">{isLoginMode ? 'Login' : 'Sign Up'}</h2>
+              <div className="text-center mt-3">
+                <button
+                  type="button"
+                  className="btn btn-link"
+                  onClick={toggleFormMode}
+                >
+                  {isLoginMode
+                    ? 'Need an account? Sign up'
+                    : 'Already have an account? Log in'}
+                </button>
+              </div>
               <form onSubmit={handleSubmit}>
                 {!isLoginMode && (
                   <>
@@ -174,17 +185,6 @@ const LoginForm = ({ onLogin }) => {
                 <button type="submit" className="btn btn-primary w-100">
                   {isLoginMode ? 'Login' : 'Sign Up'}
                 </button>
-                <div className="text-center mt-3">
-                  <button
-                    type="button"
-                    className="btn btn-link"
-                    onClick={toggleFormMode}
-                  >
-                    {isLoginMode
-                      ? 'Need an account? Sign up'
-                      : 'Already have an account? Log in'}
-                  </button>
-                </div>
               </form>
             </div>
           </div>
