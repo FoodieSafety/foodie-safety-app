@@ -42,11 +42,13 @@ class ImageBase(FileBase):
 
 # Barcode Information
 class Barcode(BaseModel):
-    type: str
     code: str
 
-# The base product information
-class ProductBase(BaseModel):
-    barcode: Barcode
+# Error details for Product Requests
+class ProductError(Barcode):
+    status_code: int
+
+# Returned details for successful Product Requests
+class ProductInfo(Barcode):
     name: str
     brand: str

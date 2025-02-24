@@ -10,12 +10,13 @@ class TestProductService(unittest.TestCase):
         self.user_token = TokenData(user_id=1)
         self.img_path: str = f"backend/tests/images/greatvaluetrailmix.png"
         self.client = TestClient(router)
+        self.upload_form = {'str_barcodes': "0078742237145"}
 
     def test_product_upload(self):
         with open(file=self.img_path, mode="rb") as img_file:
             img_stream = {"product_file": (self.img_path, img_file, "image/png")}
             data = {"db": None, "token_data": None}
-            response = self.client.post("/products", files=img_stream)
+            response = self.client.post("/products", data=self.upload_form)
         self.assertEqual(response.status_code, 202)
         products, bad_barcodes = response.json()
         print(products)
