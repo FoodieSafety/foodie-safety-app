@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import BarcodeScanner from './BarcodeScanner';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
-const HomePage = ({user, isLoggedIn, onLogout}) => {
+const HomePage = ({ user, isLoggedIn, onLogout }) => {
     const navigate = useNavigate();
+    const [scannedProduct, setScannedProduct] = useState(null);
+
     return (
         <div>
             {/* Navbar */}
@@ -15,7 +17,7 @@ const HomePage = ({user, isLoggedIn, onLogout}) => {
             {/* Hero Section */}
             <div className="hero-section text-center py-5" style={{ backgroundColor: isLoggedIn ? '#FFD700' : '#BDE3FF' }}>
                 <div className="circle-icon d-flex justify-content-center align-items-center my-3 bg-light text-dark rounded-circle"
-                     style={{ width: '75px', height: '75px' }}>
+                    style={{ width: '75px', height: '75px' }}>
                     <strong>Foodie Safety</strong>
                 </div>
                 {isLoggedIn ? (
@@ -30,7 +32,9 @@ const HomePage = ({user, isLoggedIn, onLogout}) => {
                     <>
                         <h1>Want to stay up-to-date on food recall and food <br /> safety information?</h1>
                         <p>Click below to subscribe now and Sign up for alerts and get the latest food safety news.</p>
-                        <button className="btn btn-light mt-3 px-4" onClick={() => navigate('/sign-up')}>Subscribe</button>
+                        <button className="btn btn-light mt-3 px-4" onClick={() => navigate('/newsletter')}>
+                            Subscribe
+                        </button>
                     </>
                 )}
             </div>
@@ -123,7 +127,15 @@ const HomePage = ({user, isLoggedIn, onLogout}) => {
             {isLoggedIn && (
                 <div className="container text-center my-5">
                     <h3>Scan a Product Barcode</h3>
-                    <BarcodeScanner />
+                    <BarcodeScanner onScanSuccess={setScannedProduct} />
+                    {scannedProduct && (
+                        <div className="mt-4 p-3 border rounded">
+                            <h4>Product Information</h4>
+                            <p><strong>Name:</strong> {scannedProduct.name}</p>
+                            <p><strong>Brand:</strong> {scannedProduct.brand}</p>
+                            <p><strong>Barcode:</strong> {scannedProduct.barcode}</p>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
