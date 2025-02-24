@@ -35,7 +35,7 @@ const BarcodeScanner = ({ onScanSuccess }) => {
         setSubmitClicked(true);
         try {
             const formData = new FormData();
-            formData.append("barcode", decodedText);
+            formData.append("str_barcodes", decodedText);
 
             const response = await fetch("http://127.0.0.1:8000/products", {
                 method: "POST",
