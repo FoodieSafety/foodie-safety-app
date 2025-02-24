@@ -131,9 +131,9 @@ const HomePage = ({ user, isLoggedIn, onLogout }) => {
                     {scannedProduct && (
                         <div className="mt-4 p-3 border rounded">
                             <h4>Product Information</h4>
-                            <p><strong>Name:</strong> {scannedProduct.name}</p>
                             <p><strong>Brand:</strong> {scannedProduct.brand}</p>
-                            <p><strong>Barcode:</strong> {scannedProduct.barcode}</p>
+                            <p><strong>Barcode:</strong> {scannedProduct.code}</p>
+                            <p><strong>Name:</strong> {scannedProduct.name}</p>
                         </div>
                     )}
                 </div>
