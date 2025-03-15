@@ -52,9 +52,10 @@ const BarcodeScanner = ({ onScanSuccess }) => {
 
             const data = await response.json();
             if (response.ok) {
-                setProductInfo(data.product);
+                setProductInfo(data[0][0]);
                 setIsRecalled(data.isRecalled);
                 onScanSuccess(data);
+                console.log(data);
             } else {
                 setError("Product not found");
             }
