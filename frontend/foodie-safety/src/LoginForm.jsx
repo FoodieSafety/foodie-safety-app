@@ -19,18 +19,14 @@ const LoginForm = ({ onLogin }) => {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    if (location.pathname === '/login' && !isLoginMode) {
-      setIsLoginMode(true);
-    } else if (location.pathname !== '/login' && isLoginMode) {
-      setIsLoginMode(false);
-    }
-
+    setIsLoginMode(location.pathname === '/login');
+  
     const storedUser = JSON.parse(localStorage.getItem('currentUser'));
     if (storedUser) {
       setCurrentUser(storedUser);
       onLogin(storedUser);
     }
-  }, [location.pathname, onLogin, isLoginMode, currentUser]);
+  }, [location.pathname, onLogin]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

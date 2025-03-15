@@ -9,6 +9,8 @@ const NewsForm = ({ isLoggedIn, onLogout }) => {
     state: "",
   });
 
+  const [submitted, setSubmitted] = useState(false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -22,6 +24,7 @@ const NewsForm = ({ isLoggedIn, onLogout }) => {
       return;
     }
     console.log("Form submitted", formData);
+    setSubmitted(true);
   };
 
   const fetchStateFromZip = (zipCode) => {
@@ -46,11 +49,8 @@ const NewsForm = ({ isLoggedIn, onLogout }) => {
       <Navbar isLoggedIn={isLoggedIn} onLogout={onLogout} onShowLoginForm={() => window.location.href = '/login'} />
       <div className="container d-flex flex-column align-items-center vh-100">
         <div className="card p-4 shadow-lg w-50 mt-5">
-          <h1 className="text-center mb-3">Newsletter Subscription</h1>
-          <p className="text-center">
-            To manage your subscription, you must <a href="/sign-up">create an account.</a>
-          </p>
-          <hr />
+          <h1 className="text-center mb-3">Sign up for Recall Email Alerts (No account needed)</h1>
+          <br />
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label htmlFor="email" className="form-label">Email Address:</label>
@@ -108,7 +108,18 @@ const NewsForm = ({ isLoggedIn, onLogout }) => {
             <button type="submit" className="btn btn-primary w-100">Submit</button>
           </form>
 
+          {submitted && (
+            <div className="alert alert-success mt-3 text-center">
+              🎉 You're subscribed! Watch your inbox for weekly alerts.
+            </div>
+          )}
+
+          <hr className="mt-4" />
+
           <div className="text-center mt-3">
+            <p className="text-center text-muted small mt-2">
+              Want to track recalls and customize your alerts? <a href="/sign-up">Create an account</a> — it's optional!
+            </p>
             <p>
               By continuing, you agree to our <a href="/terms">Terms of Service</a> and our <a href="/privacy">Privacy Policy</a>.
             </p>

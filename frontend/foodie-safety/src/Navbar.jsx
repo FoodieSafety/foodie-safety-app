@@ -45,13 +45,13 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink className="nav-link" to="/food-recalls">
-                    Food Recalls
+                  <NavLink className="nav-link" to="/account">
+                    Account <i class="fa-solid fa-user"></i>
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink className="nav-link" to="/account">
-                    Account
+                  <NavLink className="nav-link" to="/settings">
+                    Settings <i class="fa-solid fa-gear"></i>
                   </NavLink>
                 </li>
                 <li className="nav-item">

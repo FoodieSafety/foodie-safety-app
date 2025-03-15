@@ -5,6 +5,7 @@ import LoginForm from "./LoginForm";
 import Subscription from "./Subscription";
 import AccountPage from "./AccountPage";
 import NewsletterForm from "./Newsform";
+import ScanProduct from "./ScanProduct";
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -59,6 +60,9 @@ const App = () => {
         
         {/* Newsletter Form - Restricted to Non-Logged-in Users */}
         <Route path="/newsletter" element={!isLoggedIn ? <NewsletterForm /> : <Navigate to="/" />} />
+
+        {/* Scan Page - Restricted to Logged-in Users */}
+        <Route path="/scan" element={isLoggedIn ? <ScanProduct isLoggedIn={isLoggedIn} onLogout={handleLogout} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   );
