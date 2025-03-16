@@ -5,8 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const ScanProduct = ({ isLoggedIn, onLogout }) => {
-    const [scannedProduct] = useState(null);
-
+    
     return (
         <div>
             {/* Navbar */}
@@ -22,7 +21,7 @@ const ScanProduct = ({ isLoggedIn, onLogout }) => {
             </div>
 
             <div className="container text-center my-5">
-                <BarcodeScanner onScanSuccess={scannedProduct} />
+                <BarcodeScanner />
             </div>
         </div>
     );
