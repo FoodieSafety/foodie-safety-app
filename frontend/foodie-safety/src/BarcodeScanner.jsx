@@ -37,7 +37,7 @@ const BarcodeScanner = () => {
         return () => {
             scanner.clear();
         };
-    });
+    }, []);
 
     const handleSubmit = async () => {
         setSubmitClicked(true);
