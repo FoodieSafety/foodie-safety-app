@@ -4,7 +4,7 @@ import HomePage from "./Homepage";
 import LoginForm from "./LoginForm";
 import Subscription from "./Subscription";
 import AccountPage from "./AccountPage";
-import NewsletterForm from "./newsform";
+import NewsletterForm from "./Newsform";
 import ScanProduct from "./ScanProduct";
 
 const App = () => {

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from './Navbar';
 
-const newsform = ({ isLoggedIn, onLogout }) => {
+const Newsform = ({ isLoggedIn, onLogout }) => {
   const [formData, setFormData] = useState({
     email: "",
     zipcode: "",
@@ -130,4 +130,4 @@ const newsform = ({ isLoggedIn, onLogout }) => {
   );
 };
 
-export default newsform;
+export default Newsform;
