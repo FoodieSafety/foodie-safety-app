@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const BarcodeScanner = ({ onScanSuccess }) => {
+const BarcodeScanner = () => {
     const [error, setError] = useState("");
     const [barcodeScanned, setBarcodeScanned] = useState(false);
     const [decodedText, setDecodedText] = useState("");
@@ -37,7 +37,7 @@ const BarcodeScanner = ({ onScanSuccess }) => {
         return () => {
             scanner.clear();
         };
-    }, [onScanSuccess]);
+    });
 
     const handleSubmit = async () => {
         setSubmitClicked(true);
@@ -54,7 +54,6 @@ const BarcodeScanner = ({ onScanSuccess }) => {
             if (response.ok) {
                 setProductInfo(data[0][0]);
                 setIsRecalled(data.isRecalled);
-                onScanSuccess(data);
                 console.log(data);
             } else {
                 setError("Product not found");
