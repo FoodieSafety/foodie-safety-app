@@ -16,3 +16,4 @@ pyjwt
 opencv-python
 pyzbar
 numpy
+cryptography
