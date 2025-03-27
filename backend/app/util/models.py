@@ -1,9 +1,16 @@
-from sqlalchemy import Column, String, TIMESTAMP, BigInteger, ForeignKey, Enum, Text
+from sqlalchemy import Column, String, Integer, TIMESTAMP, BigInteger, ForeignKey, Enum, Text, Table, Boolean
 from sqlalchemy.sql.expression import text
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
+
+# Association table
+user_product_association = Table(
+    'user_product', Base.metadata,
+    Column('user_id', BigInteger, ForeignKey('users.user_id')),
+    Column('product_id', BigInteger, ForeignKey('products.product_id'))
+)
 
 class User(Base):
     __tablename__ = "users"
@@ -22,6 +29,13 @@ class User(Base):
 
     # Relationship with login_activities table
     login_activities = relationship("LoginActivity", back_populates="user", cascade="all, delete-orphan")
+
+    # Relationship with Product Table
+    products = relationship(
+        "Product",
+        secondary=user_product_association,
+        back_populates="users"
+    )
 
     def __repr__(self):
         return f"<User(user_id={self.user_id}, username='{self.username}', email='{self.email}')>"
@@ -77,3 +91,21 @@ class Subscription(Base):
 
     # Define relationships
     newsletter = relationship("Newsletter", back_populates="subscriptions")
+
+class Product(Base):
+    __tablename__ = "products"
+    product_id = Column(BigInteger, primary_key=True, autoincrement=True)
+    code = Column(String(50), nullable=False)
+    name = Column(String(255), nullable=False)
+    brand = Column(String(255), nullable=False)
+    recall = Column(Boolean, default=False)
+
+    # Relationship with User Table
+    users = relationship(
+        "User",
+        secondary=user_product_association,
+        back_populates="products"
+    )
+
+    def __repr__(self):
+        return f"<ProductInfo(code={self.code}, name={self.name}, brand={self.brand}, recall={self.recall})>"

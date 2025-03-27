@@ -20,7 +20,7 @@ def get_products_info(barcodes: List[Barcode]) -> Tuple[List[ProductInfo], List[
         product_response = requests.get(f"{OPENFOOD_API_URL}{barcode.code}.json")
         if product_response.status_code == 200:
             product_json = product_response.json()
-            product_info_list.append(ProductInfo(code=barcode.code, name=product_json['product']['product_name'], brand=product_json['product']['brand_owner']))
+            product_info_list.append(ProductInfo(code=barcode.code, name=product_json['product'].get('product_name'), brand=product_json['product'].get('brand_owner')))
         else:
             invalid_barcodes.append(ProductError(code=barcode.code, status_code=product_response.status_code))
     return product_info_list, invalid_barcodes

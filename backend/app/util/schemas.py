@@ -52,3 +52,4 @@ class ProductError(Barcode):
 class ProductInfo(Barcode):
     name: str
     brand: str
+    recall: bool = False
