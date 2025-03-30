@@ -6,6 +6,9 @@ import Subscription from "./Subscription";
 import AccountPage from "./AccountPage";
 import NewsletterForm from "./Newsform";
 import ScanProduct from "./ScanProduct";
+import PantryPage from "./PantryPage";
+import SettingPage from "./SettingPage";
+import History from "./History";
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -63,6 +66,15 @@ const App = () => {
 
         {/* Scan Page - Restricted to Logged-in Users */}
         <Route path="/scan" element={isLoggedIn ? <ScanProduct isLoggedIn={isLoggedIn} onLogout={handleLogout} /> : <Navigate to="/" />} />
+
+        {/* Setting Page - Restricted to Logged-in Users */}
+        <Route path="/settings" element={isLoggedIn ? <SettingPage isLoggedIn={isLoggedIn} onLogout={handleLogout} /> : <Navigate to="/" />} />
+          
+        {/* Pantry Page - Restricted to Logged-in Users */}
+        <Route path="/my-products" element={isLoggedIn ? <PantryPage user={user?.FirstName} isLoggedIn={isLoggedIn} onLogout={handleLogout} pantryItems={[]} /> : <Navigate to="/" />}/>
+
+        {/* History Page - Restricted to Logged-in Users */}
+        <Route path="/history" element={isLoggedIn ? <History isLoggedIn={isLoggedIn} onLogout={handleLogout} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   );

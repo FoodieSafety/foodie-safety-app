@@ -11,7 +11,10 @@ const BarcodeScanner = () => {
     const [isRecalled, setIsRecalled] = useState(false);
     const [manualBarcode, setManualBarcode] = useState("");
     const [usingManualInput, setUsingManualInput] = useState(false);
-
+    const [scannedProducts, setScannedProducts] = useState(() => {
+        return JSON.parse(localStorage.getItem("scannedProducts")) || [];
+    });
+    
     useEffect(() => {
         const scanner = new Html5QrcodeScanner("reader", {
             fps: 10,
@@ -41,19 +44,28 @@ const BarcodeScanner = () => {
 
     const handleSubmit = async () => {
         setSubmitClicked(true);
+        // Check if the product has already been scanned
+        if (scannedProducts.includes(decodedText)) {
+            setError("This product has already been scanned.");
+            return;
+        }
+    
         try {
             const formData = new FormData();
             formData.append("str_barcodes", decodedText);
-
+    
             const response = await fetch("http://54.183.230.236:8000/products", {
                 method: "POST",
                 body: formData,
             });
-
+    
             const data = await response.json();
             if (response.ok) {
                 setProductInfo(data[0][0]);
                 setIsRecalled(data.isRecalled);
+                const updatedScannedProducts = [...scannedProducts, decodedText];
+                setScannedProducts(updatedScannedProducts);
+                localStorage.setItem("scannedProducts", JSON.stringify(updatedScannedProducts)); // Save to localStorage
                 console.log(data);
             } else {
                 setError("Product not found");
@@ -62,7 +74,7 @@ const BarcodeScanner = () => {
             setError(error.message || "Failed to fetch product information");
         }
     };
-
+    
     const handleManualInputChange = (event) => {
         setManualBarcode(event.target.value);
     };

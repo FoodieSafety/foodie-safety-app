@@ -51,22 +51,16 @@ const AccountPage = ({ isLoggedIn, onLogout }) => {
 
     return (
         <div>
-            {/* Navbar */}
-            <Navbar isLoggedIn={isLoggedIn} onLogout={onLogout} onShowLoginForm={() => window.location.href = '/login'} />
+            <Navbar isLoggedIn={isLoggedIn} onLogout={onLogout} />
 
             {/* Hero Section */}
             <div className="hero-section text-center py-5" style={{ backgroundColor: '#FFD700' }}>
-                <div className="circle-icon d-flex justify-content-center align-items-center my-3 bg-light text-dark rounded-circle"
-                     style={{ width: '75px', height: '75px' }}>
-                    <strong>Foodie Safety</strong>
-                </div>
-                <h1>Account Settings</h1>
-                <p>Your account settings and preferences.</p>
+                <h1>Your Account Profile</h1>
+                <p>Manage your personal details here.</p>
             </div>
 
             {/* Profile Section */}
             <div className="container text-center my-5">
-                <h3>Your Profile</h3>
                 {!editProfile ? (
                     <div>
                         <p><strong>Name:</strong> {formData.name}</p>
@@ -78,64 +72,19 @@ const AccountPage = ({ isLoggedIn, onLogout }) => {
                     <div>
                         <div className="mb-3">
                             <label htmlFor="name" className="form-label">Name</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                id="name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                            />
+                            <input type="text" className="form-control" id="name" name="name" value={formData.name} onChange={handleChange} />
                         </div>
                         <div className="mb-3">
                             <label htmlFor="email" className="form-label">Email</label>
-                            <input
-                                type="email"
-                                className="form-control"
-                                id="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                            />
+                            <input type="email" className="form-control" id="email" name="email" value={formData.email} onChange={handleChange} />
                         </div>
                         <div className="mb-3">
                             <label htmlFor="zipCode" className="form-label">Zip Code</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                id="zipCode"
-                                name="zipCode"
-                                value={formData.zipCode}
-                                onChange={handleChange}
-                            />
+                            <input type="text" className="form-control" id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleChange} />
                         </div>
                         <button className="btn btn-success mt-3" onClick={handleProfileSave}>Save Changes</button>
                     </div>
                 )}
-            </div>
-
-            {/* Subscription Section */}
-            <div className="container text-center my-5">
-                <h3>Manage Subscriptions</h3>
-                <p>Stay updated with food safety alerts and notifications based on your preferences.</p>
-                <button className="btn btn-primary" onClick={() => navigate('/subscriptions')}>View & Manage Subscriptions</button>
-            </div>
-
-            {/* Change Password Section */}
-            <div className="container text-center my-5">
-                <h3>Change Password</h3>
-                <button className="btn btn-info" onClick={() => navigate('/change-password')}>Change Password</button>
-            </div>
-
-            {/* Account Management Section */}
-            <div className="container text-center my-5">
-                <h3>Account Settings</h3>
-                <button className="btn btn-danger" onClick={() => navigate('/deactivate-account')}>Deactivate Account</button>
-            </div>
-
-            {/* Logout Button */}
-            <div className="container text-center my-5">
-                <button className="btn btn-light" onClick={onLogout}>Log Out</button>
             </div>
         </div>
     );

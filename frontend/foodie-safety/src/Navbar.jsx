@@ -5,7 +5,16 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container-fluid">
-        <a className="navbar-brand" href="/">Foodie Safety</a>
+        {/* Logo and Brand Name */}
+        <a className="navbar-brand d-flex align-items-center" href="/">
+          <img 
+            src="/Foodie_Safety_Logo.jpeg" 
+            alt="Foodie Safety Logo" 
+            style={{ height: '40px', marginRight: '10px' }} 
+          />
+          <span>Foodie Safety</span>
+        </a>
+
         <button
           className="navbar-toggler"
           type="button"
@@ -17,6 +26,7 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
         >
           <span className="navbar-toggler-icon"></span>
         </button>
+
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
             {!isLoggedIn ? (
@@ -46,12 +56,12 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
                 </li>
                 <li className="nav-item">
                   <NavLink className="nav-link" to="/account">
-                    Account <i class="fa-solid fa-user"></i>
+                    Account <i className="fa-solid fa-user"></i>
                   </NavLink>
                 </li>
                 <li className="nav-item">
                   <NavLink className="nav-link" to="/settings">
-                    Settings <i class="fa-solid fa-gear"></i>
+                    Settings <i className="fa-solid fa-gear"></i>
                   </NavLink>
                 </li>
                 <li className="nav-item">

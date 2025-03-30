@@ -13,29 +13,32 @@ const HomePage = ({ user, isLoggedIn, onLogout }) => {
             <Navbar isLoggedIn={isLoggedIn} onLogout={onLogout} onShowLoginForm={() => window.location.href = '/login'} />
 
             {/* Hero Section */}
-            <div className="hero-section text-center py-5" style={{ backgroundColor: isLoggedIn ? '#FFD700' : '#BDE3FF' }}>
-                <div className="circle-icon d-flex justify-content-center align-items-center my-3 bg-light text-dark rounded-circle"
-                    style={{ width: '75px', height: '75px' }}>
-                    <strong>Foodie Safety</strong>
+            <div className="hero-section py-5" style={{ backgroundColor: isLoggedIn ? '#FFD700' : '#BDE3FF' }}>
+                <div className="container text-center">
+                    <div className="row justify-content-center">
+                        <div className="col-lg-8 col-md-10">
+                            {isLoggedIn ? (
+                                <>
+                                    <h1 className="display-5 fw-bold">Welcome Back, {user}!</h1>
+                                    <p className="lead">Your latest food safety updates at a glance.</p>
+                                    <button className="btn btn-dark btn-md mt-4 px-5" onClick={() => navigate('/subscriptions')}>
+                                        Manage My Safety Alerts
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <h1 className="display-5 fw-bold">Want to stay in the loop on food recalls and safety news?</h1>
+                                    <p className="lead">Subscribe now to get alerts and updates straight to your inbox.</p>
+                                    <button className="btn btn-light btn-lg mt-4 px-5" onClick={() => navigate('/newsletter')}>
+                                        Join the Alert List
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
-                {isLoggedIn ? (
-                    <>
-                        <h1>Welcome Back, {user}!</h1>
-                        <p>Your latest food safety updates at a glance.</p>
-                        <button className="btn btn-light mt-3 px-4" onClick={() => navigate('/subscriptions')}>
-                            Manage My Safety Alerts
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <h1>Want to stay in the loop on food recalls and safety news?</h1>
-                        <p>Subscribe now to get email alerts and updates on food safety straight to your inbox.</p>
-                        <button className="btn btn-light mt-3 px-4" onClick={() => navigate('/newsletter')}>
-                            Join the Alert List
-                        </button>
-                    </>
-                )}
             </div>
+
 
             {/* Features Section */}
             {isLoggedIn ? (
