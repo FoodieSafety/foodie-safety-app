@@ -59,7 +59,7 @@ class UserDao:
 
 
     @staticmethod
-    def get_user_by_id(user_id: int, db: Session) -> UserResponse:
+    def get_user(user_id: int, db: Session) -> UserResponse:
         """
         Get user by ID
         :param user_id: user ID

@@ -20,11 +20,17 @@ class TestUserService(unittest.TestCase):
         self.assertEqual(user_response.get('username'), "test")
 
     def test_get_user(self):
-        response = self.user_client.get("/users/1")
+        credentials = {'username': 'test@test.com', 'password': 'test'}
+        login_response = self.login_client.post("/login", data=credentials)
+        self.assertEqual(login_response.status_code, 200)
+        access_token = login_response.json()["access_token"]
+        headers = {
+            "Authorization": f"Bearer {access_token}"
+        }
+        response = self.user_client.get("/users", headers=headers)
         self.assertEqual(response.status_code, 200)
         user_response = response.json()
-        self.assertIsNotNone(user_response)
-        print(user_response)
+        self.assertEqual(user_response.get('username'), "test")
 
     def test_update_user(self):
         credentials = {'username': 'test@test.com', 'password': 'test'}
@@ -53,6 +59,7 @@ class TestUserService(unittest.TestCase):
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(TestUserService("test_create_user"))
+    suite.addTest(TestUserService("test_get_user"))
     suite.addTest(TestUserService("test_update_user"))
     suite.addTest(TestUserService("test_delete_user"))
     return suite

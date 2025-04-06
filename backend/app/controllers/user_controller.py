@@ -13,14 +13,15 @@ class UserController:
     def create_user(user: UserCreate, db: Session) -> UserResponse:
         return UserDao.create_user(user, db)
 
-
     @staticmethod
     def get_users(db: Session) -> List[UserResponse]:
         return UserDao.get_users(db)
 
     @staticmethod
-    def get_user_by_id(user_id: int, db: Session) -> UserResponse:
-        return UserDao.get_user_by_id(user_id, db)
+    def get_user(db: Session, token_data: TokenData) -> UserResponse:
+        # Get the user id from the token
+        user_id = token_data.user_id
+        return UserDao.get_user(user_id, db)
 
     @staticmethod
     def update_user(user: UserCreate, db: Session, token_data: TokenData) -> UserResponse:
