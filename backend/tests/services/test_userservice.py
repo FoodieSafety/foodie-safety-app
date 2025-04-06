@@ -19,13 +19,6 @@ class TestUserService(unittest.TestCase):
         user_response = response.json()
         self.assertEqual(user_response.get('username'), "test")
 
-    def test_get_users(self):
-        response = self.user_client.get("/users")
-        self.assertEqual(response.status_code, 200)
-        users_response = response.json()
-        for user in users_response:
-            self.assertIsNotNone(user)
-
     def test_get_user(self):
         response = self.user_client.get("/users/1")
         self.assertEqual(response.status_code, 200)

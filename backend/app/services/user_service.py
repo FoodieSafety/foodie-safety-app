@@ -19,15 +19,6 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     """
     return UserController.create_user(user, db)
 
-@router.get("", response_model=List[UserResponse])
-def get_users(db: Session = Depends(get_db)):
-    """
-    Get all users
-    :param db: session object
-    :return: response
-    """
-    return UserController.get_users(db)
-
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     """
