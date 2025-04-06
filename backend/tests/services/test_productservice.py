@@ -19,7 +19,7 @@ class TestProductService(unittest.TestCase):
         create_user_form = {'username': "test", 'email': "test@test.com", 'password': "test"}
         cls.user_client.post("/users", json=create_user_form)
         # Login to test user
-        credentials = {'username': 'test', 'password': 'test'}
+        credentials = {'username': 'test@test.com', 'password': 'test'}
         login_response = cls.login_client.post("/login", data=credentials)
         cls.access_token = login_response.json()["access_token"]
 

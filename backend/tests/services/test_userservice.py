@@ -27,7 +27,7 @@ class TestUserService(unittest.TestCase):
         print(user_response)
 
     def test_update_user(self):
-        credentials = {'username': 'test', 'password': 'test'}
+        credentials = {'username': 'test@test.com', 'password': 'test'}
         login_response = self.login_client.post("/login", data=credentials)
         self.assertEqual(login_response.status_code, 200)
         access_token = login_response.json()["access_token"]
@@ -40,7 +40,7 @@ class TestUserService(unittest.TestCase):
         self.assertEqual(user_response.get('username'), "test2")
 
     def test_delete_user(self):
-        credentials = {'username': 'test2', 'password': 'test2'}
+        credentials = {'username': 'test2@test2.com', 'password': 'test2'}
         login_response = self.login_client.post("/login", data=credentials)
         self.assertEqual(login_response.status_code, 200)
         access_token = login_response.json()["access_token"]

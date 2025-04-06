@@ -18,7 +18,7 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session =
     """
     # Check valid username
     user = db.query(User).filter(
-        User.username == user_credentials.username,
+        User.email == user_credentials.username,
     ).first()
 
     if not user:
