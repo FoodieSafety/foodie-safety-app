@@ -13,11 +13,17 @@ class TestUserService(unittest.TestCase):
         self.login_client = TestClient(login_router)
 
     def test_create_user(self):
-        create_user_form = {'username': "test", 'email': "test@test.com", 'password': "test"}
+        create_user_form = {
+            'first_name': "test", 
+            'last_name': "test", 
+            'zip_code': "12345", 
+            'email': "test@test.com", 
+            'password': "test"
+        }
         response = self.user_client.post("/users", json=create_user_form)
         self.assertEqual(response.status_code, 201)
         user_response = response.json()
-        self.assertEqual(user_response.get('username'), "test")
+        self.assertEqual(user_response.get('first_name'), "test")
 
     def test_get_user(self):
         credentials = {'username': 'test@test.com', 'password': 'test'}
@@ -30,7 +36,7 @@ class TestUserService(unittest.TestCase):
         response = self.user_client.get("/users", headers=headers)
         self.assertEqual(response.status_code, 200)
         user_response = response.json()
-        self.assertEqual(user_response.get('username'), "test")
+        self.assertEqual(user_response.get('first_name'), "test")
 
     def test_update_user(self):
         credentials = {'username': 'test@test.com', 'password': 'test'}
@@ -40,10 +46,16 @@ class TestUserService(unittest.TestCase):
         headers = {
             "Authorization": f"Bearer {access_token}"
         }
-        create_user_form = {'username': "test2", 'email': "test2@test2.com", 'password': "test2"}
+        create_user_form = {
+            'first_name': "test2", 
+            'last_name': "test2", 
+            'zip_code': "12345", 
+            'email': "test2@test2.com", 
+            'password': "test2"
+        }
         response = self.user_client.put("/users", json=create_user_form, headers=headers)
         user_response = response.json()
-        self.assertEqual(user_response.get('username'), "test2")
+        self.assertEqual(user_response.get('first_name'), "test2")
 
     def test_delete_user(self):
         credentials = {'username': 'test2@test2.com', 'password': 'test2'}

@@ -16,7 +16,9 @@ class User(Base):
     __tablename__ = "users"
 
     user_id = Column(BigInteger, primary_key=True, autoincrement=True)
-    username = Column(String(100), nullable=False, unique=True)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    zip_code = Column(String(10), nullable=False)
     email = Column(String(100), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), nullable=False)
@@ -38,7 +40,7 @@ class User(Base):
     )
 
     def __repr__(self):
-        return f"<User(user_id={self.user_id}, username='{self.username}', email='{self.email}')>"
+        return f"<User(user_id={self.user_id}, first_name='{self.first_name}', last_name='{self.last_name}', email='{self.email}')>"
 
 class LoginActivity(Base):
     __tablename__ = "login_activities"

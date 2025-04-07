@@ -16,7 +16,13 @@ class TestProductService(unittest.TestCase):
         cls.user_client = TestClient(user_router)
         cls.login_client = TestClient(login_router)
         # Create test user if not present
-        create_user_form = {'username': "test", 'email': "test@test.com", 'password': "test"}
+        create_user_form = {
+            'first_name': "test", 
+            'last_name': "test", 
+            'zip_code': "12345", 
+            'email': "test@test.com", 
+            'password': "test"
+        }
         cls.user_client.post("/users", json=create_user_form)
         # Login to test user
         credentials = {'username': 'test@test.com', 'password': 'test'}

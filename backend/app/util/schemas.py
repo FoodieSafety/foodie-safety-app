@@ -4,7 +4,9 @@ from typing import Optional
 from fastapi import UploadFile
 
 class UserBase(BaseModel):
-    username: str
+    first_name: str
+    last_name: str
+    zip_code: str
     email: EmailStr
 
 class UserCreate(UserBase):

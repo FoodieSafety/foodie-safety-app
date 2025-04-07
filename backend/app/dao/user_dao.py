@@ -23,17 +23,14 @@ class UserDao:
         :param db: Session object
         :return: response
         """
-        # Check duplication in username or email
+        # Check duplication in email
         existing_user = db.query(User).filter(
             or_(
-                User.username == user.username,
                 User.email == user.email
             )
         ).first()
 
         if existing_user:
-            if existing_user.username == user.username:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists")
             if existing_user.email == user.email:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
 
@@ -85,17 +82,14 @@ class UserDao:
         if not existing_user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {user_id} not found")
 
-        # Check duplication in username or email
+        # Check duplication in email
         duplicate_user = db.query(User).filter(
             or_(
-                User.username == user.username,
                 User.email == user.email
             ),
             User.user_id != user_id  # Exclude the current user
         ).first()
         if duplicate_user:
-            if duplicate_user.username == user.username:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists")
             if duplicate_user.email == user.email:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
 
