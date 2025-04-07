@@ -16,27 +16,16 @@ const PantryPage = ({ user, isLoggedIn, onLogout }) => {
         }
     }, [isLoggedIn]);
 
-    const fetchPantryItems = async () => {
-        try {
-            const response = await fetch('http://54.183.230.236:8000/products', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch pantry items');
-            }
-
-            const data = await response.json();
-            setPantryItems(data);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
+    const fetchPantryItems = () => {
+        const storedProducts = JSON.parse(localStorage.getItem('scannedProducts')) || [];
+        
+        if (storedProducts.length > 0) {
+            setPantryItems(storedProducts);
+        } else {
+            setError('No products found in your pantry.');
         }
+        
+        setLoading(false);
     };
 
     return (
@@ -69,7 +58,7 @@ const PantryPage = ({ user, isLoggedIn, onLogout }) => {
                             ) : error ? (
                                 <tr>
                                     <td colSpan="4" className="text-center text-danger">
-                                        {error} (Showing pantry layout)
+                                        {error}
                                     </td>
                                 </tr>
                             ) : pantryItems.length > 0 ? (

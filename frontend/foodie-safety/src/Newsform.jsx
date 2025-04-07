@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from './Navbar';
+import { useNavigate } from "react-router-dom";
 
 const Newsform = ({ isLoggedIn, onLogout }) => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,8 @@ const Newsform = ({ isLoggedIn, onLogout }) => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,7 +49,7 @@ const Newsform = ({ isLoggedIn, onLogout }) => {
 
   return (
     <div style={{ backgroundImage: "linear-gradient(135deg, #7799f4, #e36a32)" }}>
-      <Navbar isLoggedIn={isLoggedIn} onLogout={onLogout} onShowLoginForm={() => window.location.href = '/login'} />
+      <Navbar isLoggedIn={isLoggedIn} onLogout={onLogout} onShowLoginForm={() => navigate('/login')} />
       <div className="container d-flex flex-column align-items-center vh-100">
         <div className="card p-4 shadow-lg w-50 mt-5">
           <h1 className="text-center mb-3">Sign up for Recall Email Alerts (No account needed)</h1>
