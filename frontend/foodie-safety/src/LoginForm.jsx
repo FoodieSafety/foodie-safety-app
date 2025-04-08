@@ -1,32 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import Navbar from './Navbar';
 
-const LoginForm = ({ onLogin }) => {
+const LoginForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth();
   const [isLoginMode, setIsLoginMode] = useState(location.pathname === '/login');
   const [formData, setFormData] = useState({
-    FirstName: '',
-    LastName: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
     zipCode: '',
   });
-  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     setIsLoginMode(location.pathname === '/login');
-  
-    const storedUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (storedUser) {
-      setCurrentUser(storedUser);
-      onLogin(storedUser);
-    }
-  }, [location.pathname, onLogin]);
+  }, [location.pathname]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -40,23 +34,28 @@ const LoginForm = ({ onLogin }) => {
     navigate(isLoginMode ? '/sign-up' : '/login');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isLoginMode) {
-      const savedUsers = JSON.parse(localStorage.getItem('users')) || [];
-      const user = savedUsers.find(
-        (u) => u.email === formData.email && u.password === formData.password
-      );
+      const loginForm = new URLSearchParams();
+      loginForm.append('username', formData.email);
+      loginForm.append('password', formData.password);
 
-      if (user) {
-        onLogin(user);
-        setCurrentUser(user);
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        alert(`Welcome, ${user.FirstName}!`);
-        navigate('/account');
+      const response = await fetch('http://localhost:8000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: loginForm.toString(),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        const user = { email: formData.email };
+        login(user, data.access_token);
+        alert('Login successful!');
+        navigate('/');
       } else {
-        alert('Invalid email or password');
+        alert('Login failed: ' + data.detail);
       }
     } else {
       if (formData.password !== formData.confirmPassword) {
@@ -64,45 +63,46 @@ const LoginForm = ({ onLogin }) => {
         return;
       }
 
-      const newUser = {
-        FirstName: formData.FirstName,
-        LastName: formData.LastName,
+      const createUserForm = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
         zipCode: formData.zipCode,
       };
 
-      const savedUsers = JSON.parse(localStorage.getItem('users')) || [];
-      localStorage.setItem('users', JSON.stringify([...savedUsers, newUser]));
-      alert('Sign up successful! Please log in.');
-      navigate('/login');
+      try {
+        const response = await fetch('http://localhost:8000/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(createUserForm),
+        });
+
+        if (response.ok) {
+          alert('Sign-up successful! Please log in.');
+          navigate('/login');
+        } else {
+          const errorData = await response.json();
+          alert('Sign-up failed: ' + errorData.detail);
+        }
+      } catch (error) {
+        console.error('Error during sign-up:', error);
+        alert('An error occurred during sign-up.');
+      }
     }
   };
 
   return (
     <div className="container-fluid p-0">
-      <Navbar
-        isLoggedIn={!!currentUser}
-        user={currentUser}
-        onLogout={() => {
-          setCurrentUser(null);
-          localStorage.removeItem('currentUser');
-        }}
-      />
+      <Navbar />
       <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="card my-5">
             <div className="card-body">
               <h2 className="text-center">{isLoginMode ? 'Login' : 'Sign Up'}</h2>
               <div className="text-center mt-3">
-                <button
-                  type="button"
-                  className="btn btn-link"
-                  onClick={toggleFormMode}
-                >
-                  {isLoginMode
-                    ? 'Need an account? Sign up'
-                    : 'Already have an account? Log in'}
+                <button type="button" className="btn btn-link" onClick={toggleFormMode}>
+                  {isLoginMode ? 'Need an account? Sign up' : 'Already have an account? Log in'}
                 </button>
               </div>
               <form onSubmit={handleSubmit}>
@@ -113,8 +113,8 @@ const LoginForm = ({ onLogin }) => {
                       <input
                         type="text"
                         className="form-control"
-                        name="FirstName"
-                        value={formData.FirstName}
+                        name="firstName"
+                        value={formData.firstName}
                         onChange={handleInputChange}
                         required
                       />
@@ -124,8 +124,8 @@ const LoginForm = ({ onLogin }) => {
                       <input
                         type="text"
                         className="form-control"
-                        name="LastName"
-                        value={formData.LastName}
+                        name="lastName"
+                        value={formData.lastName}
                         onChange={handleInputChange}
                         required
                       />

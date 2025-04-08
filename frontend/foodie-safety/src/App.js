@@ -1,82 +1,32 @@
-import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from './context/AuthContext';
 import HomePage from "./Homepage";
 import LoginForm from "./LoginForm";
-import Subscription from "./Subscription";
 import AccountPage from "./AccountPage";
-import NewsletterForm from "./Newsform";
+import Subscription from "./Subscription";
 import ScanProduct from "./ScanProduct";
 import PantryPage from "./PantryPage";
-import SettingPage from "./SettingPage";
+import SettingsPage from "./SettingPage";
 import History from "./History";
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return !!localStorage.getItem("currentUser");
-  });
-
-  const [user, setUser] = useState(() => {
-    return JSON.parse(localStorage.getItem("currentUser"));
-  }); 
-
-  const handleLogin = (formData) => {
-    setIsLoggedIn(true);
-    setUser(formData);
-    localStorage.setItem("currentUser", JSON.stringify(formData));
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUser(null);
-    localStorage.removeItem("currentUser");
-  };
-
   return (
-    <Router>
-      <Routes>
-        {/* Home Page */}
-        <Route
-          path="/"
-          element={<HomePage user={user?.FirstName} isLoggedIn={isLoggedIn} onLogout={handleLogout} />}
-        />
-
-        {/* Account Page */}
-        <Route
-          path="/account"
-          element={isLoggedIn ? <AccountPage user={user?.FirstName} isLoggedIn={isLoggedIn} onLogout={handleLogout} /> : <Navigate to="/" />}
-        />
-
-        {/* Login Page */}
-        <Route
-          path="/login"
-          element={isLoggedIn ? <Navigate to="/" /> : <LoginForm onLogin={handleLogin} />}
-        />
-
-        {/* Sign-up Page - Also redirects to Home */}
-        <Route
-          path="/sign-up"
-          element={isLoggedIn ? <Navigate to="/" /> : <LoginForm onLogin={handleLogin} />}
-        />
-
-        {/* Subscription Page - Restricted to Logged-in Users */}
-        <Route path="/subscriptions" element={isLoggedIn ? <Subscription /> : <Navigate to="/" />} />
-        
-        {/* Newsletter Form - Restricted to Non-Logged-in Users */}
-        <Route path="/newsletter" element={!isLoggedIn ? <NewsletterForm /> : <Navigate to="/" />} />
-
-        {/* Scan Page - Restricted to Logged-in Users */}
-        <Route path="/scan" element={isLoggedIn ? <ScanProduct isLoggedIn={isLoggedIn} onLogout={handleLogout} /> : <Navigate to="/" />} />
-
-        {/* Setting Page - Restricted to Logged-in Users */}
-        <Route path="/settings" element={isLoggedIn ? <SettingPage isLoggedIn={isLoggedIn} onLogout={handleLogout} /> : <Navigate to="/" />} />
-          
-        {/* Pantry Page - Restricted to Logged-in Users */}
-        <Route path="/my-products" element={isLoggedIn ? <PantryPage user={user?.FirstName} isLoggedIn={isLoggedIn} onLogout={handleLogout} pantryItems={[]} /> : <Navigate to="/" />}/>
-
-        {/* History Page - Restricted to Logged-in Users */}
-        <Route path="/history" element={isLoggedIn ? <History isLoggedIn={isLoggedIn} onLogout={handleLogout} /> : <Navigate to="/" />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/sign-up" element={<LoginForm />} />
+          <Route path="/subscriptions" element={<Subscription />} />
+          <Route path="/scan" element={<ScanProduct />} />
+          <Route path="/my-products" element={<PantryPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/history" element={<History />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 };
 

@@ -3,14 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import { useAuth } from './context/AuthContext';
 
-const HomePage = ({ user, isLoggedIn, onLogout }) => {
+const HomePage = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const isLoggedIn = !!user;
 
     return (
         <div>
             {/* Navbar */}
-            <Navbar isLoggedIn={isLoggedIn} onLogout={onLogout} onShowLoginForm={() => window.location.href = '/login'} />
+            <Navbar />
 
             {/* Hero Section */}
             <div className="hero-section py-5" style={{ backgroundColor: isLoggedIn ? '#FFD700' : '#BDE3FF' }}>
@@ -19,7 +22,7 @@ const HomePage = ({ user, isLoggedIn, onLogout }) => {
                         <div className="col-lg-8 col-md-10">
                             {isLoggedIn ? (
                                 <>
-                                    <h1 className="display-5 fw-bold">Welcome Back, {user}!</h1>
+                                    <h1 className="display-5 fw-bold">Welcome Back, {user?.first_name}!</h1>
                                     <p className="lead">Your latest food safety updates at a glance.</p>
                                     <button className="btn btn-dark btn-md mt-4 px-5" onClick={() => navigate('/subscriptions')}>
                                         Manage My Safety Alerts
