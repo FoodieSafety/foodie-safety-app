@@ -4,21 +4,33 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import Navbar from './Navbar';
 import axios from 'axios';
+import { useAuth } from './context/AuthContext';
 
 const Subscription = () => {
   const navigate = useNavigate();
+  const { user, access_token, loading } = useAuth();
+
   const [subscriptions, setSubscriptions] = useState([]);
   const [formData, setFormData] = useState({ email: '', subscriptionType: '', zipcode: '' });
   const [message, setMessage] = useState('');
-  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('currentUser'));
-    setCurrentUser(storedUser);
+    if (loading) return;
+
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setFormData({ ...formData, email: user.email, zipcode: user.zipCode });
 
     const fetchSubscriptions = async () => {
       try {
-        const response = await axios.get('/api/subscriptions');
+        const response = await axios.get('/api/subscriptions', {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        });
         setSubscriptions(response.data);
       } catch (error) {
         console.error("Error fetching subscriptions:", error);
@@ -26,7 +38,7 @@ const Subscription = () => {
     };
 
     fetchSubscriptions();
-  }, []);
+  }, [user, loading, access_token, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -35,7 +47,6 @@ const Subscription = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if the user is registered
     try {
       const userResponse = await axios.get(`/api/users?email=${formData.email}`);
       const userData = userResponse.data;
@@ -45,20 +56,22 @@ const Subscription = () => {
         return;
       }
 
-      // Check if email already exists in subscriptions
       const existingSubscription = subscriptions.find(sub => sub.email === formData.email);
       if (existingSubscription) {
         setMessage('This email is already subscribed.');
         return;
       }
 
-      // Add subscription
-      const response = await axios.post('/api/subscriptions', formData);
+      const response = await axios.post('/api/subscriptions', formData, {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
 
       if (response.status === 200) {
         const newSubscription = response.data;
         setSubscriptions([...subscriptions, newSubscription]);
-        setFormData({ email: '', subscriptionType: '', zipcode: '' });
+        setFormData({ email: user.email, subscriptionType: '', zipcode: user.zipCode });
         setMessage('Subscription successful!');
       } else {
         throw new Error('Failed to add subscription');
@@ -71,7 +84,11 @@ const Subscription = () => {
 
   const handleEdit = async (id) => {
     try {
-      const response = await axios.get(`/api/subscriptions/${id}`);
+      const response = await axios.get(`/api/subscriptions/${id}`, {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
       const subscription = response.data;
       setFormData(subscription);
     } catch (error) {
@@ -82,7 +99,11 @@ const Subscription = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this subscription?')) {
       try {
-        await axios.delete(`/api/subscriptions/${id}`);
+        await axios.delete(`/api/subscriptions/${id}`, {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        });
         setSubscriptions(subscriptions.filter(sub => sub.subscription_id !== id));
       } catch (error) {
         console.error("Error deleting subscription:", error);
@@ -90,17 +111,11 @@ const Subscription = () => {
     }
   };
 
+  if (!user) return null;
+
   return (
     <div className="container-fluid p-0">
-      <Navbar
-        isLoggedIn={!!currentUser}
-        user={currentUser}
-        onLogout={() => {
-          setCurrentUser(null);
-          localStorage.removeItem('currentUser');
-          navigate('/login');
-        }}
-      />
+      <Navbar />
       <div className="container">
         <h1 className="my-4">Manage Subscriptions</h1>
 
@@ -130,6 +145,7 @@ const Subscription = () => {
                 onChange={handleChange}
                 required
               >
+                <option value="">Select One</option>
                 <option value="food_recall">Food Recall</option>
                 <option value="expiration_notice">Expiration Notice</option>
               </select>

@@ -1,16 +1,19 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 
-const Navbar = ({ isLoggedIn, onLogout }) => {
+const Navbar = () => {
+  const { user, logout } = useAuth();
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container-fluid">
         {/* Logo and Brand Name */}
         <a className="navbar-brand d-flex align-items-center" href="/">
-          <img 
-            src="/Foodie_Safety_Logo.jpeg" 
-            alt="Foodie Safety Logo" 
-            style={{ height: '40px', marginRight: '10px' }} 
+          <img
+            src="/Foodie_Safety_Logo.jpeg"
+            alt="Foodie Safety Logo"
+            style={{ height: '40px', marginRight: '10px' }}
           />
           <span>Foodie Safety</span>
         </a>
@@ -29,7 +32,7 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
 
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
-            {!isLoggedIn ? (
+            {!user ? (
               <>
                 <li className="nav-item">
                   <NavLink className="nav-link" to="/" end>
@@ -65,7 +68,7 @@ const Navbar = ({ isLoggedIn, onLogout }) => {
                   </NavLink>
                 </li>
                 <li className="nav-item">
-                  <button className="btn btn-danger" onClick={onLogout}>
+                  <button className="btn btn-danger" onClick={logout}>
                     Logout
                   </button>
                 </li>
