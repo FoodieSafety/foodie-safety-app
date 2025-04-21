@@ -19,11 +19,26 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = (user, access_token) => {
-    setUser(user);
-    setToken(access_token);
-    localStorage.setItem("currentUser", JSON.stringify(user));
-    localStorage.setItem("access_token", access_token);
+  const login = async (token) => {
+    try {
+      const response = await fetch('http://localhost:8000/users', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+  
+      const userData = await response.json();
+      setUser(userData);
+      setToken(token);
+      localStorage.setItem("currentUser", JSON.stringify(userData));
+      localStorage.setItem("access_token", token);
+    } catch (err) {
+      console.error("Login error:", err);
+    }
   };
 
   const logout = () => {
@@ -31,6 +46,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem("currentUser");
     localStorage.removeItem("access_token");
+    sessionStorage.clear();
   };
 
   return (

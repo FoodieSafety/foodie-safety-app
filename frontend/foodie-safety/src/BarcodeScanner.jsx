@@ -13,13 +13,17 @@ const BarcodeScanner = ({ onScan }) => {
     });
 
     scanner.render(
-      async (decodedText) => {
-        setBarcodeScanned(true);
-        setError("");
-        onScan(decodedText);
+      (decodedText) => {
+        if (typeof decodedText === 'string' && decodedText.trim()) {
+          setBarcodeScanned(true);
+          setError("");
+          onScan(decodedText);
+        } else {
+          setError("Invalid barcode scanned. Please try again.");
+        }
       },
       (errorMessage) => {
-        setError(errorMessage);
+        setError(`Scanner error: ${errorMessage}`);
       }
     );
 
@@ -30,8 +34,8 @@ const BarcodeScanner = ({ onScan }) => {
     <div className="container mt-4">
       <div className="card shadow-lg p-4">
         <div className="card-body text-center">
-          <div id="reader" className="my-3 border border-secondary rounded"></div>
           {!barcodeScanned && <p>Please scan your barcode to continue</p>}
+          <div id="reader" className="my-3 border border-secondary rounded"></div>
           {error && <p className="text-danger">{error}</p>}
         </div>
       </div>

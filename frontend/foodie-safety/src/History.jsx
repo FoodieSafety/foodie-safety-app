@@ -14,7 +14,12 @@ const History = () => {
     }
 
     const savedScannedHistory = JSON.parse(localStorage.getItem('scannedProducts')) || [];
-    setScannedHistory(savedScannedHistory);
+
+    const validHistory = savedScannedHistory.filter(product =>
+      product.code && product.name && product.scannedAt
+    );
+
+    setScannedHistory(validHistory);
   }, [loading, user]);
 
   if (loading) return null;
@@ -44,7 +49,7 @@ const History = () => {
                   <tr key={index}>
                     <td>{product.code}</td>
                     <td>{product.name}</td>
-                    <td>{new Date().toLocaleString()}</td>
+                    <td>{new Date(product.scannedAt).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

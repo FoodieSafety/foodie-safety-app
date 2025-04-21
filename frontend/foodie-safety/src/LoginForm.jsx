@@ -50,8 +50,9 @@ const LoginForm = () => {
 
       const data = await response.json();
       if (response.ok) {
-        const user = { email: formData.email };
-        login(user, data.access_token);
+        const token = data.access_token;
+
+        await login(token);
         alert('Login successful!');
         navigate('/');
       } else {
@@ -64,11 +65,11 @@ const LoginForm = () => {
       }
 
       const createUserForm = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
         email: formData.email,
         password: formData.password,
-        zipCode: formData.zipCode,
+        zip_code: formData.zipCode,
       };
 
       try {

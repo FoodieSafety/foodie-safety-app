@@ -49,7 +49,7 @@ const AccountPage = () => {
       zip_code: formData.zipCode,
       password: formData.password,
     };
-
+  
     try {
       const response = await fetch('http://localhost:8000/users', {
         method: 'PUT',
@@ -58,10 +58,11 @@ const AccountPage = () => {
           Authorization: `Bearer ${access_token}`,
         },
         body: JSON.stringify(updatedUser),
-      })
-
+      });
+  
       if (response.ok) {
         login(updatedUser, access_token);
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
         setEditProfile(false);
         alert('Profile updated successfully');
       } else {
@@ -72,7 +73,7 @@ const AccountPage = () => {
       console.error('Error updating profile:', error);
       alert('An error occurred while updating the profile');
     }
-  };
+  };  
 
   if (loading) return null;
 
@@ -91,7 +92,7 @@ const AccountPage = () => {
             <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
             <p><strong>Email:</strong> {formData.email}</p>
             <p><strong>Zip Code:</strong> {formData.zipCode}</p>
-            <p><strong>Password:</strong> {formData.password}</p>
+            <p><strong>Password:</strong> •••••••••</p>
             <button className="btn btn-warning mt-3" onClick={() => setEditProfile(true)}>Edit Profile</button>
           </div>
         ) : (

@@ -22,17 +22,10 @@ const ScanProduct = () => {
       return;
     }
 
-    const storedProducts = JSON.parse(localStorage.getItem("scannedProducts")) || [];
-    const alreadyScanned = storedProducts.some(product => product.code === barcode);
-
-    if (alreadyScanned) {
-      setError("This Product was already scanned.");
-      return;
-    }
-
     try {
+      const normalizedBarcode = barcode.length === 12 ? '0' + barcode : barcode;
       const formData = new FormData();
-      formData.append("str_barcodes", barcode);
+      formData.append("str_barcodes", normalizedBarcode);
 
       const response = await fetch("http://localhost:8000/products", {
         method: "POST",
@@ -48,18 +41,27 @@ const ScanProduct = () => {
       }
 
       const data = await response.json();
+      const product = data?.[0]?.[0];
+      const resultInfo = data?.[1]?.[0];
 
-      const product = data[0][0];
-      const productData = {
+      if (!product || resultInfo?.status_code === 404) {
+        throw new Error(`Product not found for barcode ${resultInfo?.code || normalizedBarcode}.`);
+      }
+
+      const newScannedProduct = {
         name: product.name,
         brand: product.brand,
-        code: barcode,
+        code: normalizedBarcode,
         recall: product.recall,
+        scannedAt: new Date().toISOString(),
       };
 
       const storedProducts = JSON.parse(localStorage.getItem("scannedProducts")) || [];
-      storedProducts.push(productData);
-      localStorage.setItem("scannedProducts", JSON.stringify(storedProducts));
+      const updatedProducts = storedProducts.filter(p => p.code !== normalizedBarcode);
+
+      updatedProducts.push(newScannedProduct);
+
+      localStorage.setItem("scannedProducts", JSON.stringify(updatedProducts));
 
       navigate('/my-products');
     } catch (err) {
@@ -78,12 +80,21 @@ const ScanProduct = () => {
       <div className="container text-center my-5">
         <BarcodeScanner onScan={setBarcode} />
 
+        <div className="mt-3">
+          <p>Or enter the barcode manually:</p>
+          <input
+            type="text"
+            className="form-control w-50 mx-auto"
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            placeholder="Enter barcode manually"
+          />
+        </div>
+
         {barcode && (
-          <>
-            <button className="btn btn-primary mt-2" onClick={handleSubmit}>
-              Submit
-            </button>
-          </>
+          <button className="btn btn-primary mt-2" onClick={handleSubmit}>
+            Submit
+          </button>
         )}
 
         {error && <p className="text-danger mt-2">{error}</p>}
