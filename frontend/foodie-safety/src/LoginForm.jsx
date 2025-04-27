@@ -74,7 +74,7 @@ const LoginForm = () => {
       };
 
       try {
-        const response = await fetch('http://localhost:8000/users', {
+        const response = await fetch('http://foodiesafety.duckdns.org:8000/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(createUserForm),
