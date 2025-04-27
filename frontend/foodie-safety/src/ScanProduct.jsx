@@ -9,7 +9,7 @@ import { useAuth } from './context/AuthContext';
 const ScanProduct = () => {
   const [barcode, setBarcode] = useState('');
   const [error, setError] = useState('');
-  const { access_token } = useAuth();
+  const { user, access_token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,7 +23,8 @@ const ScanProduct = () => {
     }
 
     try {
-      const normalizedBarcode = barcode.length === 12 ? '0' + barcode : barcode;
+      const normalizedBarcode =
+        barcode.length === 12 && !barcode.startsWith('0') ? '0' + barcode : barcode;
       const formData = new FormData();
       formData.append("str_barcodes", normalizedBarcode);
 
@@ -35,12 +36,13 @@ const ScanProduct = () => {
         body: formData,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.detail || "Something went wrong");
+        const errDetail = data?.detail || `Error ${data?.status_code}: Product not found for barcode ${data?.code || normalizedBarcode}.`;
+        throw new Error(errDetail);
       }
 
-      const data = await response.json();
       const product = data?.[0]?.[0];
       const resultInfo = data?.[1]?.[0];
 
@@ -56,12 +58,12 @@ const ScanProduct = () => {
         scannedAt: new Date().toISOString(),
       };
 
-      const storedProducts = JSON.parse(localStorage.getItem("scannedProducts")) || [];
+      const userKey = `scannedProducts_${user?.email || 'guest'}`;
+      const storedProducts = JSON.parse(localStorage.getItem(userKey)) || [];
       const updatedProducts = storedProducts.filter(p => p.code !== normalizedBarcode);
 
       updatedProducts.push(newScannedProduct);
-
-      localStorage.setItem("scannedProducts", JSON.stringify(updatedProducts));
+      localStorage.setItem(userKey, JSON.stringify(updatedProducts));
 
       navigate('/my-products');
     } catch (err) {

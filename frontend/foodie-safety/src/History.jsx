@@ -13,7 +13,8 @@ const History = () => {
       return;
     }
 
-    const savedScannedHistory = JSON.parse(localStorage.getItem('scannedProducts')) || [];
+    const userKey = `scannedProducts_${user?.email || 'guest'}`;
+    const savedScannedHistory = JSON.parse(localStorage.getItem(userKey)) || [];
 
     const validHistory = savedScannedHistory.filter(product =>
       product.code && product.name && product.scannedAt

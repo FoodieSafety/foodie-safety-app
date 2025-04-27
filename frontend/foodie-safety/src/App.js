@@ -9,6 +9,7 @@ import ScanProduct from "./ScanProduct";
 import PantryPage from "./PantryPage";
 import SettingsPage from "./SettingPage";
 import History from "./History";
+import DeactivatePage from "./DeactivatePage";
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
           <Route path="/my-products" element={<PantryPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/history" element={<History />} />
+          <Route path="/deactivate-account" element={<DeactivatePage />} />
         </Routes>
       </Router>
     </AuthProvider>
