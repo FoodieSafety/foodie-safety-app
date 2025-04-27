@@ -20,7 +20,7 @@ const PantryPage = () => {
     useEffect(() => {
         const fetchPantryItems = async () => {
             try {
-                const response = await fetch('http://54.183.230.236:8000/products', {
+                const response = await fetch('http://foodiesafety.duckdns.org:8000/products', {
                     method: 'GET',
                     headers: {
                         Authorization: `Bearer ${access_token}`,

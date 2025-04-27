@@ -39,10 +39,11 @@ const LoginForm = () => {
 
     if (isLoginMode) {
       const loginForm = new URLSearchParams();
+      loginForm.append('grant_type', 'password');
       loginForm.append('username', formData.email);
       loginForm.append('password', formData.password);
 
-      const response = await fetch('http://54.183.230.236:8000/login', {
+      const response = await fetch('http://foodiesafety.duckdns.org:8000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: loginForm.toString(),
@@ -73,7 +74,7 @@ const LoginForm = () => {
       };
 
       try {
-        const response = await fetch('http://54.183.230.236:8000/users', {
+        const response = await fetch('http://localhost:8000/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(createUserForm),
