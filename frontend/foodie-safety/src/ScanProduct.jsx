@@ -28,7 +28,7 @@ const ScanProduct = () => {
       const formData = new FormData();
       formData.append("str_barcodes", normalizedBarcode);
 
-      const response = await fetch("http://54.183.230.236:8000/products", {
+      const response = await fetch("http://foodiesafety.duckdns.org:8000/products", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${access_token}`,
