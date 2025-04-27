@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.util.config import FRONTEND_URL
 from typing import List
 
-def add_cors(app: FastAPI, origins: List[str] = ['http://foodiesafety.duckdns.org:3000', FRONTEND_URL, "http://54.183.230.236:3000"]) -> FastAPI:
+def add_cors(app: FastAPI, origins: List[str] = [FRONTEND_URL, "http://54.183.230.236:3000"]) -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
