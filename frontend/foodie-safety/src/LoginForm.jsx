@@ -7,7 +7,7 @@ import Navbar from './Navbar';
 const LoginForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, loading } = useAuth();
   const [isLoginMode, setIsLoginMode] = useState(location.pathname === '/login');
   const [formData, setFormData] = useState({
     firstName: '',
@@ -92,6 +92,8 @@ const LoginForm = () => {
       }
     }
   };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="container-fluid p-0">
