@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (token) => {
     try {
-      const response = await fetch('http://foodiesafety.duckdns.org:8000/users', {
+      const response = await fetch('http://54.183.230.236:8000/users', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
