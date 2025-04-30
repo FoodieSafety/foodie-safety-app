@@ -24,11 +24,11 @@ const AccountPage = () => {
         navigate('/login');
       } else {
         setFormData({
-          firstName: user.first_name,
-          lastName: user.last_name,
-          email: user.email,
-          zipCode: user.zip_code,
-          password: user.password,
+          firstName: user.first_name || '',
+          lastName: user.last_name || '',
+          email: user.email || '',
+          zipCode: user.zip_code || '',
+          password: user.password || '',
         });
       }
     }
@@ -49,9 +49,9 @@ const AccountPage = () => {
       zip_code: formData.zipCode,
       password: formData.password,
     };
-  
+
     try {
-      const response = await fetch('http://foodiesafety.duckdns.org:8000/users', {
+      const response = await fetch('http://localhost:8000/users', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -59,10 +59,9 @@ const AccountPage = () => {
         },
         body: JSON.stringify(updatedUser),
       });
-  
+
       if (response.ok) {
-        login(updatedUser, access_token);
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        login(access_token);
         setEditProfile(false);
         alert('Profile updated successfully');
       } else {
@@ -73,7 +72,7 @@ const AccountPage = () => {
       console.error('Error updating profile:', error);
       alert('An error occurred while updating the profile');
     }
-  };  
+  };
 
   if (loading) return null;
 
@@ -96,29 +95,42 @@ const AccountPage = () => {
             <button className="btn btn-warning mt-3" onClick={() => setEditProfile(true)}>Edit Profile</button>
           </div>
         ) : (
-          <div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleProfileSave();
+            }}
+          >
             <div className="mb-3">
               <label htmlFor="firstName" className="form-label">First Name</label>
-              <input type="text" className="form-control" id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} />
+              <input type="text" className="form-control" id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} autoComplete="given-name" />
             </div>
             <div className="mb-3">
               <label htmlFor="lastName" className="form-label">Last Name</label>
-              <input type="text" className="form-control" id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} />
+              <input type="text" className="form-control" id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} autoComplete="family-name" />
             </div>
             <div className="mb-3">
               <label htmlFor="email" className="form-label">Email</label>
-              <input type="email" className="form-control" id="email" name="email" value={formData.email} onChange={handleChange} />
+              <input type="email" className="form-control" id="email" name="email" value={formData.email} onChange={handleChange} autoComplete="email" />
             </div>
             <div className="mb-3">
               <label htmlFor="zipCode" className="form-label">Zip Code</label>
-              <input type="text" className="form-control" id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleChange} />
+              <input type="text" className="form-control" id="zipCode" name="zipCode" value={formData.zipCode} onChange={handleChange} autoComplete="postal-code" />
             </div>
             <div className="mb-3">
               <label htmlFor="password" className="form-label">Password</label>
-              <input type="password" className="form-control" id="password" name="password" value={formData.password} onChange={handleChange} />
+              <input
+                type="password"
+                className="form-control"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                autoComplete="current-password"
+              />
             </div>
-            <button className="btn btn-success mt-3" onClick={handleProfileSave}>Save Changes</button>
-          </div>
+            <button type="submit" className="btn btn-success mt-3">Save Changes</button>
+          </form>
         )}
       </div>
     </div>

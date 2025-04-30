@@ -55,3 +55,14 @@ class ProductInfo(Barcode):
     name: str
     brand: str
     recall: bool = False
+
+class SubscriptionCreate(BaseModel):
+    state: str
+    subscription_type: str
+    status: str
+    zip_code: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+class SubscriptionResponse(SubscriptionCreate):
+    subscription_id: int
+    subscribed_at: datetime
