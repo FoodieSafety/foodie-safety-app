@@ -17,6 +17,8 @@ const LoginForm = () => {
     confirmPassword: '',
     zipCode: '',
   });
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     setIsLoginMode(location.pathname === '/login');
@@ -34,8 +36,28 @@ const LoginForm = () => {
     navigate(isLoginMode ? '/sign-up' : '/login');
   };
 
+  const validateEmail = (email) => {
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(email);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Email validation
+    if (!validateEmail(formData.email)) {
+      setEmailError('Please enter a valid email address.');
+      return;
+    } else {
+      setEmailError('');
+    }
+
+    if (!isLoginMode && formData.password !== formData.confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    } else {
+      setPasswordError('');
+    }
 
     if (isLoginMode) {
       const loginForm = new URLSearchParams();
@@ -43,7 +65,7 @@ const LoginForm = () => {
       loginForm.append('username', formData.email);
       loginForm.append('password', formData.password);
 
-      const response = await fetch('http://foodiesafety.duckdns.org:8000/login', {
+      const response = await fetch('http://localhost:8000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: loginForm.toString(),
@@ -60,11 +82,6 @@ const LoginForm = () => {
         alert('Login failed: ' + data.detail);
       }
     } else {
-      if (formData.password !== formData.confirmPassword) {
-        alert('Passwords do not match');
-        return;
-      }
-
       const createUserForm = {
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -74,7 +91,7 @@ const LoginForm = () => {
       };
 
       try {
-        const response = await fetch('http://foodiesafety.duckdns.org:8000/users', {
+        const response = await fetch('http://localhost:8000/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(createUserForm),
@@ -157,6 +174,7 @@ const LoginForm = () => {
                     onChange={handleInputChange}
                     required
                   />
+                  {emailError && <div className="text-danger">{emailError}</div>}
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Password</label>
@@ -180,6 +198,7 @@ const LoginForm = () => {
                       onChange={handleInputChange}
                       required
                     />
+                    {passwordError && <div className="text-danger">{passwordError}</div>}
                   </div>
                 )}
                 <button type="submit" className="btn btn-primary w-100">

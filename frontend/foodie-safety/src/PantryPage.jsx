@@ -20,7 +20,7 @@ const PantryPage = () => {
     useEffect(() => {
         const fetchPantryItems = async () => {
             try {
-                const response = await fetch('http://foodiesafety.duckdns.org:8000/products', {
+                const response = await fetch('http://localhost:8000/products', {
                     method: 'GET',
                     headers: {
                         Authorization: `Bearer ${access_token}`,
@@ -34,6 +34,19 @@ const PantryPage = () => {
 
                 const data = await response.json();
                 setPantryItems(data);
+
+                data.forEach(item => {
+                    if (item.recall && user) {
+                        const notification = new Notification('Food Recall Alert', {
+                            body: `The item ${item.name} from ${item.brand} has been recalled. Please check your pantry.`,
+                            icon: 'path/to/icon.png', // Optional icon path
+                        });
+
+                        notification.onclick = () => {
+                            window.focus();
+                        };
+                    }
+                });
             } catch (err) {
                 setError(err.message);
             }

@@ -32,6 +32,9 @@ class User(Base):
     # Relationship with login_activities table
     login_activities = relationship("LoginActivity", back_populates="user", cascade="all, delete-orphan")
 
+    # Relationship with subscriptions table
+    subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
+
     # Relationship with Product Table
     products = relationship(
         "Product",
@@ -70,17 +73,14 @@ class Newsletter(Base):
         nullable=False
     )
 
-    # Define relationships
-    subscriptions = relationship("Subscription", back_populates="newsletter", cascade="all, delete-orphan")
-
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
-
+    user_id = Column(BigInteger, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     subscription_id = Column(BigInteger, primary_key=True, autoincrement=True)
+    zip_code = Column(String(10), nullable=False)
     email = Column(String(255), nullable=False)
     state = Column(String(100), nullable=False)
-    newsletter_id = Column(BigInteger, ForeignKey("newsletters.newsletter_id", ondelete="CASCADE"))
     subscription_type = Column(
         Enum("food_recall", "expiration_notice", name="subscription_type_enum"),
         nullable=False
@@ -91,8 +91,8 @@ class Subscription(Base):
         default="active", nullable=False
     )
 
-    # Define relationships
-    newsletter = relationship("Newsletter", back_populates="subscriptions")
+    # Relationships
+    user = relationship("User", back_populates="subscriptions")
 
 class Product(Base):
     __tablename__ = "products"
