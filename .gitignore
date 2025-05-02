@@ -31,3 +31,7 @@ logs/
 
 # AWS SAM build file
 *.aws-sam
+
+# Lambda python dependencies
+lambda/layer/python
+!lambda/layer/python/requirements.txt
