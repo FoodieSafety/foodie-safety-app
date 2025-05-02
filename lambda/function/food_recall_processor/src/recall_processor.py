@@ -55,7 +55,7 @@ class RecallProcessor:
 
         return recalls
 
-    def store_recall_data(self, table_name: str, recall_data: List[Dict], key_attribute: str = None) -> None:
+    def store_recall_data(self, table_name: str, recall_data: List[Dict], key_attribute: str = "RecallID") -> None:
         """
         Store recall data into DynamoDB table
         :param table_name: DynamoDB table name

@@ -1,4 +1,12 @@
 import requests
+import re
+
+def parseUPC(description: str) -> set:
+    upc_pattern = r"UPC\s*#?\s*[A-Za-z]*\s*:?\s*([\d\s-]{10,})"
+    upc_matches = re.findall(upc_pattern, description)  # Find all UPC occurrences
+    
+    upc_codes = [re.sub(r"[\s-]+", "", upc_match) for upc_match in upc_matches]  # Remove spaces from UPCs
+    return set(upc_codes)  # Remove duplicates
 
 def formatFoodRecalls(start_date, end_date):
     """
@@ -41,7 +49,9 @@ def formatFoodRecalls(start_date, end_date):
                 # Grab the distribution pattern (which states or nationwide)
                 'Distribution': event['distribution_pattern'],
                 # Grab the code info
-                'Code Info': event['code_info']
+                'Code Info': event['code_info'],
+                # Grab UPCS
+                'UPCs': list(parseUPC(event['product_description']) | parseUPC(event['code_info']))
             }
             # Append recall to all data
             all_recalls.append(recall)

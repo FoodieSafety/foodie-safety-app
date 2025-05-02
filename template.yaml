@@ -3,27 +3,38 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   Get food recall information periodically
 Resources:
+  LambdaDependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: LambdaDependenciesLayer
+      ContentUri: ./lambda/layer/python
+      CompatibleRuntimes:
+        - python3.12
+      Description: "Lambda layer for dependencies"
+    Metadata:
+      BuildMethod: python3.12
+
   RecallProcessorFunction:
     Type: AWS::Serverless::Function
     Metadata:
-      BuildMethod: python3.13
+      BuildMethod: python3.12
     Properties:
-      PackageType: Image
-      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/food-recall-processor:latest"
-      # Handler: food_recall_processor.lambda_function.lambda_handler
-      # Runtime: python3.13
-      # CodeUri: ./lambda
+      Handler: food_recall_processor.local.lambda_function.lambda_handler
+      Runtime: python3.12
+      CodeUri: ./lambda/function
       Timeout: 30
       MemorySize: 200
+      Layers:
+        - !Ref LambdaDependenciesLayer
       Environment:
         Variables:
           DYNAMODB_TABLE: "RecallsTable"         # Environment variable for DynamoDB table
           LOG_LEVEL: "DEBUG"
           PYTHONPATH: "/var/task"                # Include path
-          AWS_SAM_LOCAL: "false"                 # "true" if test with local DynamoDB
+          AWS_SAM_LOCAL: "true"                 # "true" if test with local DynamoDB
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: "Group4-DynamoDB-RecallsTable"
+            TableName: "RecallsTable"
 #      Events:
 #        ScheduledEvent: # EventBridge rule for periodic invocation
 #          Type: Schedule

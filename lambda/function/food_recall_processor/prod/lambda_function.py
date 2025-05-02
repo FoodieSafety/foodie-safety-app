@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/opt/python")  # Ensures Lambda layer dependencies are accessible
 import os
 from food_recall_processor.src.recall_processor import RecallProcessor
 from food_recall_processor.prod.prod_dynamo_util import ProdDynamoUtil

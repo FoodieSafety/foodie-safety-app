@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/opt/python")  # Ensures Lambda layer dependencies are accessible
 import os
 from food_recall_processor.utils.logging_util import Logger
 from food_recall_processor.utils.dynamo_util import DynamoUtil
@@ -31,7 +33,7 @@ def lambda_handler(event, context):
     is_local = os.getenv("AWS_SAM_LOCAL") == "true"
 
     # Create db endpoint
-    ddb_endpoint = "http://host.docker.internal:8000" if is_local else None
+    ddb_endpoint = "http://host.docker.internal:7000" if is_local else None
     delta = 30 if is_local else 7 # set testing delta as 30
 
     # Create related instance

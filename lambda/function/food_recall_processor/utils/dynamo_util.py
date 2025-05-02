@@ -94,7 +94,7 @@ class DynamoUtil:
             self.logger.log("error", f"Failed to delete table '{table_name}': {e}")
             raise
 
-    def insert_to_table(self, table_name: str, items: List[Dict], key_attribute: str = None) -> None:
+    def insert_to_table(self, table_name: str, items: List[Dict], key_attribute: str = "RecallID") -> None:
         """
         Batch writing data into table
         :param table_name: Name of the table to write to.
