@@ -40,7 +40,7 @@ const Subscription = () => {
 
   const fetchSubscriptions = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8000/subscriptions', {
+      const response = await fetch('http://foodiesafety.duckdns.org:8000/subscriptions', {
         headers: {
           Authorization: `Bearer ${access_token}`,
         },
@@ -81,7 +81,7 @@ const Subscription = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/subscriptions', {
+      const response = await fetch('http://foodiesafety.duckdns.org:8000/subscriptions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ const Subscription = () => {
     if (!target) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/subscriptions/${subscriptionId}`, {
+      const response = await fetch(`http://foodiesafety.duckdns.org:8000/subscriptions/${subscriptionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ const Subscription = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/subscriptions/${subscriptionId}`, {
+      const response = await fetch(`http://foodiesafety.duckdns.org:8000/subscriptions/${subscriptionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
