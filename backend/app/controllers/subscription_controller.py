@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from typing import Dict, List, Optional
-from ..util.service_subscription import SubscriptionService
+from ..services.subscription_service import SubscriptionService
 from ..util.schemas import SubscriptionCreate, SubscriptionResponse, TokenData
 from ..dao.subscription_dao import SubscriptionDao
 
