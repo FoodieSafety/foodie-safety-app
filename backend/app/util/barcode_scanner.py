@@ -5,7 +5,7 @@ from pyzbar.pyzbar import decode
 import requests
 import numpy as np
 from .schemas import ProductInfo, Barcode, ProductError
-from .config import OPENFOOD_API_URL
+from .config import OPENFOOD_API_URL, NUTRITIONIX_API_URL, NUTRITIONIX_HEADERS
 from .dynamo_util import DynamoUtil
 
 # Get recall table name
@@ -22,11 +22,28 @@ def get_products_info(barcodes: List[Barcode], ddb_util: DynamoUtil) -> Tuple[Li
     product_info_list: List[ProductInfo] = []
     invalid_barcodes: List[ProductError] = []
     for barcode in barcodes:
+        nutritionix_params = {
+            "upc": barcode.code
+        }
+        product_response = requests.get(url=NUTRITIONIX_API_URL, headers=NUTRITIONIX_HEADERS, params=nutritionix_params)
+        if product_response.status_code == 200:
+            product_json = product_response.json()
+            product_recall = True if ddb_util.scan_table(recall_table_name, "UPCs", barcode.code) else False
+            product_info_list.append(ProductInfo(
+                code=barcode.code, 
+                name=product_json['foods'][0].get('food_name'), 
+                brand=product_json['foods'][0].get('brand_name'), 
+                recall=product_recall))
+            continue
         product_response = requests.get(f"{OPENFOOD_API_URL}{barcode.code}.json")
         if product_response.status_code == 200:
             product_json = product_response.json()
             product_recall = True if ddb_util.scan_table(recall_table_name, "UPCs", barcode.code) else False
-            product_info_list.append(ProductInfo(code=barcode.code, name=product_json['product'].get('product_name'), brand=product_json['product'].get('brands'), recall=product_recall))
+            product_info_list.append(ProductInfo(
+                code=barcode.code, 
+                name=product_json['product'].get('product_name'), 
+                brand=product_json['product'].get('brands'), 
+                recall=product_recall))
         else:
             invalid_barcodes.append(ProductError(code=barcode.code, status_code=product_response.status_code))
     return product_info_list, invalid_barcodes
