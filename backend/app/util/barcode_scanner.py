@@ -7,8 +7,11 @@ import numpy as np
 from .schemas import ProductInfo, Barcode, ProductError
 from .config import OPENFOOD_API_URL, NUTRITIONIX_API_URL, NUTRITIONIX_HEADERS
 from .dynamo_util import DynamoUtil
+from dotenv import load_dotenv
 
-# Get recall table name
+# Load environment variables
+load_dotenv()
+
 recall_table_name = os.getenv("DYNAMODB_RECALL_TABLE")
 
 def decode_image(product_img_bytes: bytes) -> List[Barcode]:

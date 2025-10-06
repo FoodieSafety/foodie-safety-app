@@ -19,7 +19,7 @@ const DeactivatePage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/users', {
+      const response = await fetch('http://foodiesafety.duckdns.org:8000/users', {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${access_token}`,

@@ -1,41 +1,53 @@
-from typing import Dict, List
-from fastapi import APIRouter, Depends
+import json
+from typing import Optional
+import boto3
 from sqlalchemy.orm import Session
-from ..util.oauth2 import get_current_user
+from app.dao.subscription_dao import SubscriptionDao
 from ..util.schemas import SubscriptionCreate, SubscriptionResponse
-from ..util.database import get_db
-from ..controllers.subscription_controller import SubscriptionController
+from ..util.transformers import subscription_to_schema
 
-router = APIRouter()
+lambda_client = boto3.client('lambda', region_name='us-west-1')
 
-@router.post("/subscriptions", response_model=SubscriptionResponse)
-async def create_subscription(
-    subscription: SubscriptionCreate,
-    db: Session = Depends(get_db),
-    token_data = Depends(get_current_user)
-):
-    return SubscriptionController.create_subscription(subscription, db, token_data)
+class SubscriptionService:
 
-@router.put("/subscriptions/{subscription_id}", response_model=SubscriptionResponse)
-async def update_subscription(
-    subscription_id: int,
-    subscription: SubscriptionCreate,
-    db: Session = Depends(get_db),
-    token_data = Depends(get_current_user)
-):
-    return SubscriptionController.update_subscription(subscription, db, subscription_id, token_data)
+    @staticmethod
+    def create_subscription(subscription: SubscriptionCreate, db: Session, user_id: int) -> SubscriptionResponse:
+        new_subscription = SubscriptionDao.create_subscription(subscription, db, user_id)
+        SubscriptionService.invoke_lambda(
+            new_subscription.email,
+            new_subscription.status,
+            new_subscription.subscription_type
+        )
 
-@router.get("/subscriptions", response_model=List[SubscriptionResponse])
-async def get_subscriptions(
-    db: Session = Depends(get_db),
-    token_data = Depends(get_current_user)
-):
-    return SubscriptionController.get_subscriptions(db, token_data)
+        return subscription_to_schema(new_subscription)
 
-@router.get("/subscriptions/{subscription_id}", response_model=SubscriptionResponse)
-async def get_subscription(
-    subscription_id: int,
-    db: Session = Depends(get_db),
-    token_data = Depends(get_current_user)
-):
-    return SubscriptionController.get_subscription(db, subscription_id, token_data)
+    @staticmethod
+    def update_subscription(subscription: SubscriptionCreate, db: Session, subscription_id: int, user_id: int) -> Optional[SubscriptionResponse]:
+        updated_subscription = SubscriptionDao.update_subscription(subscription, db, subscription_id, user_id)
+
+        if updated_subscription:
+            SubscriptionService.invoke_lambda(
+                updated_subscription.email,
+                updated_subscription.status,
+                updated_subscription.subscription_type
+            )
+            return subscription_to_schema(updated_subscription)
+
+        return None
+
+    @staticmethod
+    def invoke_lambda(email: str, status: str, subscription_type: str):
+        payload = {
+            'email': email,
+            'status': status,
+            'subscription_type': subscription_type
+        }
+        try:
+            response = lambda_client.invoke(
+                FunctionName='subscription_lambda',
+                InvocationType='Event',
+                Payload=json.dumps(payload),
+            )
+            print(f"Lambda invoked: {response}")
+        except Exception as e:
+            print(f"Error invoking Lambda: {str(e)}")
