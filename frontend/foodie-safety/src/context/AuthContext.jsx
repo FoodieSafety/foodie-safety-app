@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import config from '../config';
 
 export const AuthContext = createContext();
 
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (token) => {
     try {
-      const response = await fetch('http://foodiesafety.duckdns.org:8000/users', {
+      const response = await fetch(`${config.API_BASE_URL}/users`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

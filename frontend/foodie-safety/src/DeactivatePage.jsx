@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import config from './config';
 import Navbar from './Navbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -19,7 +20,7 @@ const DeactivatePage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://foodiesafety.duckdns.org:8000/users', {
+      const response = await fetch(`${config.API_BASE_URL}/users`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${access_token}`,

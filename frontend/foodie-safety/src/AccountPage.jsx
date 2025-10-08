@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import { useAuth } from './context/AuthContext';
+import config from './config';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
@@ -51,7 +52,7 @@ const AccountPage = () => {
     };
 
     try {
-      const response = await fetch('http://foodiesafety.duckdns.org:8000/users', {
+      const response = await fetch(`${config.API_BASE_URL}/users`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

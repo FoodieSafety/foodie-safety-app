@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from fastapi import APIRouter, status, Form, Depends
 from sqlalchemy.orm import Session
 from typing import List, Tuple
@@ -7,6 +8,9 @@ from ..controllers.product_controller import ProductController
 from ..util.database import get_db
 from ..util.oauth2 import get_current_user
 from ..util.dynamo_util import DynamoUtil
+
+# Ensure environment variables from .env are loaded for this module
+load_dotenv()
 
 # Create router object
 router = APIRouter(prefix="/products", tags=["Products"])
