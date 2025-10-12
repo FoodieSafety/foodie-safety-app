@@ -2,11 +2,11 @@ import os
 from typing import List, Tuple
 import cv2
 from pyzbar.pyzbar import decode
-import requests
 import numpy as np
 from .schemas import ProductInfo, Barcode, ProductError
 from .config import OPENFOOD_API_URL, NUTRITIONIX_API_URL, NUTRITIONIX_HEADERS
 from .dynamo_util import DynamoUtil
+from .product_api import get_nutritionix_info, get_openfoodfact_info
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -22,31 +22,25 @@ def decode_image(product_img_bytes: bytes) -> List[Barcode]:
     return barcodes
 
 def get_products_info(barcodes: List[Barcode], ddb_util: DynamoUtil) -> Tuple[List[ProductInfo], List[ProductError]]:
+    
     product_info_list: List[ProductInfo] = []
     invalid_barcodes: List[ProductError] = []
     for barcode in barcodes:
-        nutritionix_params = {
-            "upc": barcode.code
-        }
-        product_response = requests.get(url=NUTRITIONIX_API_URL, headers=NUTRITIONIX_HEADERS, params=nutritionix_params)
-        if product_response.status_code == 200:
-            product_json = product_response.json()
-            product_recall = True if ddb_util.scan_table(recall_table_name, "UPCs", barcode.code) else False
-            product_info_list.append(ProductInfo(
-                code=barcode.code, 
-                name=product_json['foods'][0].get('food_name'), 
-                brand=product_json['foods'][0].get('brand_name'), 
-                recall=product_recall))
+
+        is_recalled = get_recall_info(barcode, ddb_util)
+
+        nutritionix_info = get_nutritionix_info(barcode)
+        if type(nutritionix_info) is ProductInfo:
+            nutritionix_info.recall = is_recalled
+            product_info_list.append(nutritionix_info)
             continue
-        product_response = requests.get(f"{OPENFOOD_API_URL}{barcode.code}.json")
-        if product_response.status_code == 200:
-            product_json = product_response.json()
-            product_recall = True if ddb_util.scan_table(recall_table_name, "UPCs", barcode.code) else False
-            product_info_list.append(ProductInfo(
-                code=barcode.code, 
-                name=product_json['product'].get('product_name'), 
-                brand=product_json['product'].get('brands'), 
-                recall=product_recall))
-        else:
-            invalid_barcodes.append(ProductError(code=barcode.code, status_code=product_response.status_code))
+
+        openfoodfact_info = get_openfoodfact_info(barcode)
+        if type(openfoodfact_info) is ProductInfo:
+            openfoodfact_info.recall = is_recalled
+            product_info_list.append(openfoodfact_info)
+            continue
+        
+        invalid_barcodes.append(openfoodfact_info)
+        
     return product_info_list, invalid_barcodes
