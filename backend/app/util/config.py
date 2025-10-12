@@ -12,6 +12,8 @@ NUTRITIONIX_HEADERS = {
             "x-app-key": os.getenv("NUTRITIONIX_KEY")
         }
 
+UNKNOWN_PLACEHOLDER = '-Unknown-'
+
 # Local host variables
 FRONTEND_URL = "http://localhost:3000"
 
