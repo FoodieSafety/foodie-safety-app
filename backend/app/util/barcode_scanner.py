@@ -4,7 +4,7 @@ import cv2
 from pyzbar.pyzbar import decode
 import numpy as np
 from .schemas import ProductInfo, Barcode, ProductError
-from .config import OPENFOOD_API_URL, NUTRITIONIX_API_URL, NUTRITIONIX_HEADERS
+from .config import RECALL_DB_DISABLED
 from .dynamo_util import DynamoUtil
 from .product_api import get_nutritionix_info, get_openfoodfact_info
 from dotenv import load_dotenv
@@ -20,6 +20,13 @@ def decode_image(product_img_bytes: bytes) -> List[Barcode]:
     decoded_products = decode(product_img)
     barcodes = [Barcode(code=product.data.decode('utf-8')) for product in decoded_products]
     return barcodes
+
+def get_recall_info(barcode: Barcode, ddb_util: DynamoUtil) -> bool:
+    if RECALL_DB_DISABLED:
+        return False
+    if ddb_util.scan_table(recall_table_name, "UPCs", barcode.code):
+        return True
+    return False
 
 def get_products_info(barcodes: List[Barcode], ddb_util: DynamoUtil) -> Tuple[List[ProductInfo], List[ProductError]]:
     

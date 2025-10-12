@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Product API variables
 OPENFOOD_API_URL = "https://world.openfoodfacts.org/api/v2/product/"
@@ -10,3 +14,6 @@ NUTRITIONIX_HEADERS = {
 
 # Local host variables
 FRONTEND_URL = "http://localhost:3000"
+
+# Recall Table variables
+RECALL_DB_DISABLED = os.getenv("DISABLE_RECALL_DB", "false").lower() == "true"
