@@ -45,3 +45,19 @@ async def get_products(
     :return: response
     """
     return ProductController.get_products(db=db, token_data=token_data)
+
+@router.delete("", response_model=Tuple[List[ProductInfo], List[ProductError]], status_code=status.HTTP_202_ACCEPTED)
+async def delete_products(
+     str_barcodes: List[str] = Form(...),
+     db: Session = Depends(get_db),
+     token_data = Depends(get_current_user)
+):
+     """
+     Delete uploaded products
+     :param str_barcodes: list of barcode strings
+     :param db: session object
+     :param token_data: token
+     :return: response
+     """
+     barcodes = [Barcode(code=str_code) for str_code in str_barcodes]
+     return ProductController.delete_products(barcodes=barcodes, db=db, token_data=token_data)

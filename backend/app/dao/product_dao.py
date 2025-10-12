@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-from typing import List
+from typing import List, Tuple
 from fastapi import HTTPException, status
-from ..util.schemas import ProductInfo
+from ..util.schemas import ProductInfo, ProductError, Barcode
 from ..util.models import Base, Product, User
 from ..util.database import engine
 from ..util.hash import hash_password
@@ -72,3 +72,45 @@ class ProductDao:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {user_id} not found")
         
         return [ProductInfo(**product.__dict__) for product in user.products]
+    
+    @staticmethod
+    def delete_products(barcodes: List[Barcode], db: Session, user_id: int) -> Tuple[List[ProductInfo], List[ProductError]]:
+        """
+        Delete specified products associated to user
+        :param barcodes: list of barcodes to delete
+        :param db: Session object
+        :param user_id: User id
+        :return: response
+        """
+
+        # Check ID exists
+        user = db.query(User).filter(User.user_id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {user_id} not found")
+        
+        # Report deleted products
+        deleted_products: List[ProductInfo] = []
+        invalid_barcodes: List[ProductError] = []
+        for barcode in barcodes:
+            # Check duplication in username or email
+            existing_product = db.query(Product).filter(
+                or_(
+                    Product.code == barcode.code
+                )
+            ).first()
+
+            if not existing_product:
+                invalid_barcodes.append(ProductError(code=barcode.code, status_code=status.HTTP_404_NOT_FOUND))
+                continue
+
+            if existing_product not in user.products:
+                invalid_barcodes.append(ProductError(code=barcode.code, status_code=status.HTTP_404_NOT_FOUND))
+                continue
+                
+            user.products.remove(existing_product)
+
+            deleted_products.append(ProductInfo(**existing_product.__dict__))
+        
+        db.commit()
+
+        return deleted_products, invalid_barcodes
