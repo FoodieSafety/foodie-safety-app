@@ -40,16 +40,16 @@ class ProductDao:
                 )
             ).first()
 
-            if existing_product:
-                # Check existing_products list of associated users
-                # If user has already uploaded product do nothing else add user to product and product to user
-                db.refresh(existing_product)
-                user.products.append(existing_product)
-            else:
+            if not existing_product:
                 # Add product to db and associate to user
                 new_product = Product(**product.model_dump())
                 db.add(new_product)
                 user.products.append(new_product)
+            elif existing_product not in user.products:
+                # Check existing_products list of associated users
+                # If user has already uploaded product do nothing else add user to product and product to user
+                db.refresh(existing_product)
+                user.products.append(existing_product)
 
             db.commit()
             # valid user, create
