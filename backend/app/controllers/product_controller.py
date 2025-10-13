@@ -20,3 +20,8 @@ class ProductController:
     def get_products(db: Session, token_data: TokenData) -> List[ProductInfo]:
         user_id = token_data.user_id
         return ProductDao.get_products(db=db, user_id=user_id)
+    
+    @staticmethod
+    def delete_products(barcodes: List[Barcode], db: Session, token_data: TokenData) -> Tuple[List[ProductInfo], List[ProductError]]:
+        user_id = token_data.user_id
+        return ProductDao.delete_products(barcodes=barcodes, db=db, user_id=user_id)

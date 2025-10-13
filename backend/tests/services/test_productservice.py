@@ -48,7 +48,7 @@ class TestProductService(unittest.TestCase):
         self.assertEqual(response.status_code, 202)
         products, bad_barcodes = response.json()
         print(products)
-        self.assertGreater(len(products), 0)
+        self.assertEqual(len(products), 2)
 
     def test_get_products(self):
         headers = {
@@ -58,12 +58,28 @@ class TestProductService(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         products = response.json()
         print(products)
-        self.assertGreater(len(products), 0)
+        self.assertEqual(len(products), 2)
+
+    def test_delete_products(self):
+        headers = {
+            "Authorization": f"Bearer {self.access_token}"
+        }
+        delete_form = {'str_barcodes': ["0078742237145", "044000034207"]} 
+        response = self.product_client.request("DELETE", "/products", data=delete_form, headers=headers)
+        self.assertEqual(response.status_code, 202)
+        products, bad_barcodes = response.json()
+        print(products)
+        self.assertEqual(len(products), 2)
+        response = self.product_client.get("/products", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        products = response.json()
+        self.assertEqual(len(products), 0)
 
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(TestProductService("test_product_upload"))
     suite.addTest(TestProductService("test_get_products"))
+    suite.addTest(TestProductService("test_delete_products"))
     return suite
 
 if __name__ == "__main__":
