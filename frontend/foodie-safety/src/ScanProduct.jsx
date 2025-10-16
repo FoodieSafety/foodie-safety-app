@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import config from './config';
 
 const ScanProduct = () => {
   const [barcode, setBarcode] = useState('');
@@ -28,7 +29,7 @@ const ScanProduct = () => {
       const formData = new FormData();
       formData.append("str_barcodes", normalizedBarcode);
 
-      const response = await fetch("http://foodiesafety.duckdns.org:8000/products", {
+      const response = await fetch(`${config.API_BASE_URL}/products`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${access_token}`,

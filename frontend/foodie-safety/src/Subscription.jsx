@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import Navbar from './Navbar';
 import { useAuth } from './context/AuthContext';
+import config from './config';
 
 const Subscription = () => {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const Subscription = () => {
 
   const fetchSubscriptions = useCallback(async () => {
     try {
-      const response = await fetch('http://foodiesafety.duckdns.org:8000/subscriptions', {
+      const response = await fetch(`${config.API_BASE_URL}/subscriptions`, {
         headers: {
           Authorization: `Bearer ${access_token}`,
         },
@@ -81,7 +82,7 @@ const Subscription = () => {
     }
 
     try {
-      const response = await fetch('http://foodiesafety.duckdns.org:8000/subscriptions', {
+      const response = await fetch(`${config.API_BASE_URL}/subscriptions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +111,7 @@ const Subscription = () => {
     if (!target) return;
 
     try {
-      const response = await fetch(`http://foodiesafety.duckdns.org:8000/subscriptions/${subscriptionId}`, {
+      const response = await fetch(`${config.API_BASE_URL}/subscriptions/${subscriptionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +177,7 @@ const Subscription = () => {
     }
 
     try {
-      const response = await fetch(`http://foodiesafety.duckdns.org:8000/subscriptions/${subscriptionId}`, {
+      const response = await fetch(`${config.API_BASE_URL}/subscriptions/${subscriptionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
