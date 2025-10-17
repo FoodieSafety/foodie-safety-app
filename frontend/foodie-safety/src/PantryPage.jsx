@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useAuth } from './context/AuthContext';
+import config from './config';
 
 const PantryPage = () => {
     const [pantryItems, setPantryItems] = useState([]);
@@ -20,7 +21,7 @@ const PantryPage = () => {
     useEffect(() => {
         const fetchPantryItems = async () => {
             try {
-                const response = await fetch('http://foodiesafety.duckdns.org:8000/products', {
+                const response = await fetch(`${config.API_BASE_URL}/products`, {
                     method: 'GET',
                     headers: {
                         Authorization: `Bearer ${access_token}`,

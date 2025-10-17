@@ -8,7 +8,8 @@ def add_cors(app: FastAPI, origins: List[str] = [FRONTEND_URL, "http://foodiesaf
         CORSMiddleware,
         allow_origins=origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"]
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+        expose_headers=["*"]
     )
     return app
