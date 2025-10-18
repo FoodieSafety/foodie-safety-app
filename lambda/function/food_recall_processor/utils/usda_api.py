@@ -4,7 +4,7 @@ import requests
 import re
 from typing import List, Dict, Optional
 
-from function.food_recall_processor.utils.config import USDA_API_URL
+from .config import USDA_API_URL
 
 
 def _parseUPC(description: str) -> set:

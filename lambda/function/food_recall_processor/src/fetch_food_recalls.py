@@ -1,9 +1,10 @@
 import requests
 import re
 import food_recall_processor.utils.openfda_api as OpenFDA
+import food_recall_processor.utils.usda_api as USDA
 
 
-def formatFoodRecalls(start_date, end_date):
+def fetch_food_recalls(start_date, end_date):
     """
     Formats food recall data into a list of dictionaries for structured use.
 
@@ -23,8 +24,11 @@ def formatFoodRecalls(start_date, end_date):
     # List to store food recall from json object
     all_recalls = [] 
     # Fetch the recall data from OpenFDA
-    openfda_recalls = OpenFDA.getFoodRecalls(start_date, end_date)
+    openfda_recalls = OpenFDA.get_food_recalls_fda(start_date, end_date)
+    usda_recalls = USDA.get_food_recalls_usda(start_date, end_date)
     if openfda_recalls:
         all_recalls += openfda_recalls
+    if usda_recalls:
+        all_recalls += usda_recalls
 
     return all_recalls    

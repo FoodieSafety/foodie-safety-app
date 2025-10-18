@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict
 import hashlib
 from botocore.exceptions import ClientError
-from food_recall_processor.src.fetch_food_recalls import formatFoodRecalls
+from food_recall_processor.src.fetch_food_recalls import fetch_food_recalls
 from food_recall_processor.utils.logging_util import Logger
 from food_recall_processor.utils.dynamo_util import DynamoUtil
 
@@ -41,7 +41,7 @@ class RecallProcessor:
         :return: List of formatted recall data
         """
         # Get recalls data
-        recalls = formatFoodRecalls(self.start_time, self.end_time)
+        recalls = fetch_food_recalls(self.start_time, self.end_time)
         if recalls:
             self.logger.log(
                 "info",

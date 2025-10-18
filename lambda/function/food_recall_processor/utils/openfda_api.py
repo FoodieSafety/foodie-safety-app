@@ -10,7 +10,7 @@ def _parseUPC(description: str) -> set:
     upc_codes = [re.sub(r"[\s-]+", "", upc_match) for upc_match in upc_matches]  # Remove spaces from UPCs
     return set(upc_codes)  # Remove duplicates
 
-def _formatFoodRecalls(api_response) -> List[Dict]:
+def _format_food_recalls(api_response) -> List[Dict]:
     """
     Formats food recall data into a list of dictionaries for structured use.
 
@@ -56,7 +56,7 @@ def _formatFoodRecalls(api_response) -> List[Dict]:
             all_recalls.append(recall)
     return all_recalls
 
-def getFoodRecalls(start_date, end_date) -> Optional[List[Dict]]: 
+def get_food_recalls_fda(start_date, end_date) -> Optional[List[Dict]]:
     """
     Fetches food recall data from the OpenFDA API within a specified date range.
 
@@ -77,7 +77,7 @@ def getFoodRecalls(start_date, end_date) -> Optional[List[Dict]]:
 
     response = requests.get(url)  # Make a GET request to the FDA API
     if response.status_code == 200:  # Check if the request was successful (status code 200)
-        return _formatFoodRecalls(response.json())  # Return the response json as a list of recalls
+        return _format_food_recalls(response.json())  # Return the response json as a list of recalls
     else:
         return None  # Return None if the request was not successful
     
