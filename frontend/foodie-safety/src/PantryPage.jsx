@@ -60,6 +60,35 @@ const PantryPage = () => {
         }
     }, [user, access_token, loading]);
 
+    const handleDelete = async (barcode) => {
+        try {
+            const formData = new FormData();
+            formData.append('str_barcodes', barcode);
+
+            const response = await fetch(`${config.API_BASE_URL}/products`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${access_token}`,
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.detail || 'Failed to delete product');
+            }
+
+            
+            setPantryItems(prevItems => 
+                prevItems.filter(item => item.code !== barcode)
+            );
+            
+            alert('Product deleted successfully!');
+        } catch (err) {
+            alert(`Error: ${err.message}`);
+        }
+    };
+
     return (
         <div>
             <Navbar />
@@ -80,16 +109,17 @@ const PantryPage = () => {
                                 <th>Brand</th>
                                 <th>Code</th>
                                 <th>Safety Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="4" className="text-center">Loading...</td>
+                                    <td colSpan="5" className="text-center">Loading...</td>
                                 </tr>
                             ) : error ? (
                                 <tr>
-                                    <td colSpan="4" className="text-center text-danger">{error}</td>
+                                    <td colSpan="5" className="text-center text-danger">{error}</td>
                                 </tr>
                             ) : pantryItems.length > 0 ? (
                                 pantryItems.map((item, index) => (
@@ -100,11 +130,19 @@ const PantryPage = () => {
                                         <td className={item.recall ? 'text-danger' : 'text-success'}>
                                             {item.recall ? 'Recalled' : 'Safe'}
                                         </td>
+                                        <td>
+                                            <button 
+                                                className="btn btn-danger btn-sm"
+                                                onClick={() => handleDelete(item.code)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="4" className="text-center">No items in your pantry yet.</td>
+                                    <td colSpan="5" className="text-center">No items in your pantry yet.</td>
                                 </tr>
                             )}
                         </tbody>
