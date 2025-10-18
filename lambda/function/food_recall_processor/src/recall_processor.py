@@ -41,11 +41,11 @@ class RecallProcessor:
         :return: List of formatted recall data
         """
         # Get recalls data
-        recalls = fetch_food_recalls(self.start_time, self.end_time)
+        recalls = fetch_food_recalls(self.start_time, self.end_time, self.logger)
         if recalls:
             self.logger.log(
                 "info",
-                f"Fetched {len(recalls)} recall data for {self.start_time} to {self.end_time}."
+                f"Fetched {len(recalls)} recall data in total (OpenFDA + USDA) for {self.start_time} to {self.end_time}."
             )
         else:
             self.logger.log(
