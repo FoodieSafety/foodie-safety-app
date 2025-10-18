@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List, Tuple
+
+from ..util.models import Product
 from ..util.schemas import ProductInfo, Barcode, ProductError, TokenData
 from ..util.barcode_scanner import get_products_info
 from ..dao.product_dao import ProductDao
@@ -12,7 +14,7 @@ class ProductController:
     """
     @staticmethod
     def upload_products(barcodes: List[Barcode], db: Session, ddb_util: DynamoUtil, token_data: TokenData) -> Tuple[List[ProductInfo], List[ProductError]]:
-        products, invalid_barcodes = get_products_info(barcodes=barcodes, ddb_util=ddb_util)
+        products, invalid_barcodes = get_products_info(barcodes=barcodes, ddb_util=ddb_util, db=db)
         user_id = token_data.user_id
         return ProductDao.upload_products(products=products, db=db, user_id=user_id), invalid_barcodes
     
