@@ -5,6 +5,7 @@ import re
 from typing import List, Dict, Optional
 
 from .config import USDA_API_URL
+from .logging_util import Logger
 
 
 def _parseUPC(description: str) -> set:
@@ -46,32 +47,27 @@ def _format_food_recalls_usda(api_response, start, end):
             recall = {
                 # Grab the recalling firm
                 'Recalling Firm': event['field_establishment'],
-                # # Grab the product description
-                # 'Product Description': event['product_description'],
-                # Grab the reason for recall
+                # Product description not present. Just fetching the next best thing. field_summary seems like a blog post of the recall.
+                'Product Description': event['field_product_items'],
                 'Reason for Recall': event['field_recall_reason'],
-                # Grab the report date
                 'Report Date': event['field_recall_date'],
-                #Grab classification
                 'Classification': event['field_recall_classification'],
-                # # Grab the product quantity
-                # 'Product Quantity': event['product_quantity'],
-                # # Grab the distribution pattern (which states or nationwide)
-                # 'Distribution': event['distribution_pattern'],
-                # # Grab the code info
+                # 'Product Quantity': event['product_quantity'], # Product qty not available in USDA
+                # Grab the distribution pattern (which states or nationwide)
+                'Distribution': event['field_states'], # Has list of state codes or 'Nationwide' if shipped countrywide
+                # Lot codes are not given explicitly. May occur in field_product_items or field_summary
                 # 'Code Info': event['code_info'],
-                # # Grab UPCS
-                'UPCs': list(_parseUPC(event['field_product_items']) | _parseUPC(event['field_summary']))
+                'UPCs': list(_parseUPC(event['field_product_items']) | _parseUPC(event['field_summary'])),
+                'Source': "USDA"
             }
             recalls.append(recall)
         else:
             # Stop if the field_date (parsed_date) is before start_date
             break
 
-    print(recalls)
-    return
+    return recalls
 
-def get_food_recalls_usda(start_date, end_date) -> Optional[List[Dict]]:
+def get_food_recalls_usda(start_date, end_date, logger:Logger) -> Optional[List[Dict]]:
     """
     Fetches food recall data from the OpenFDA API within a specified date range.
 
@@ -100,4 +96,8 @@ def get_food_recalls_usda(start_date, end_date) -> Optional[List[Dict]]:
     if response.status_code == 200:  # Check if the request was successful (status code 200)
         return _format_food_recalls_usda(response.json(), start_date, end_date)  # Return the response json as a list of recalls
     else:
-        return None  # Return None if the request was not successful
+        logger.log(
+            "error",
+            f"Error occurred while fetching recalls from USDA API"
+        )
+        return []
