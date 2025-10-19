@@ -1,36 +1,76 @@
+# tests/services/test_fatsecret_api.py
+
 import sys
 import os
-from fastapi.testclient import TestClient
 
-# ✅ Dynamically add backend/app to Python path
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+# Ensure "backend/app" is on sys.path when running pytest from repo root or from backend/
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # -> backend
 APP_DIR = os.path.join(BASE_DIR, "app")
-sys.path.insert(0, BASE_DIR)
-sys.path.insert(0, APP_DIR)
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+if APP_DIR not in sys.path:
+    sys.path.insert(0, APP_DIR)
 
-# Now imports will work
-from app.main import app  # noqa: E402
+from app.util.product_api import get_fatsecret_info  # util-level function (no API route)
+from app.util.schemas import Barcode, ProductInfo, ProductError
 
-client = TestClient(app)
 
 # ----------------------------------------------------
-# Test FatSecret endpoint
+# FatSecret util tests (no real network; monkeypatched)
 # ----------------------------------------------------
-def test_fatsecret_endpoint():
-    """Test the FatSecret API integration by hitting /fatsecret endpoint."""
-    params = {"query": "banana"}  # change to barcode if your endpoint expects that
-    response = client.get("/fatsecret", params=params)
+def test_fatsecret_info_success(monkeypatch):
+    """FatSecret returns a matching food → should produce ProductInfo."""
+    class FakeResp:
+        status_code = 200
+        def raise_for_status(self): pass
+        def json(self):
+            return {
+                "foods": {
+                    "food": [{
+                        "food_name": "Mocked Banana",
+                        "brand_name": "MockBrand",
+                        "food_description": "Mock desc",
+                    }]
+                }
+            }
 
-    print("Status code:", response.status_code)
-    try:
-        print("Response JSON:", response.json())
-    except Exception:
-        print("Response Text:", response.text)
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: FakeResp())
 
-    # Basic assertions
-    assert response.status_code == 200
-    assert response.json() is not None
-
-
+    out = get_fatsecret_info(Barcode(code="012345"))
+    assert isinstance(out, ProductInfo)
+    assert out.name == "Mocked Banana"
+    assert out.brand == "MockBrand"
+    # util functions set recall=False; barcode_scanner applies recall later
+    assert out.recall is False
 
 
+def test_fatsecret_info_no_match(monkeypatch):
+    """FatSecret returns 200 but no foods → should produce ProductError(404)."""
+    class FakeResp:
+        status_code = 200
+        def raise_for_status(self): pass
+        def json(self):
+            return {"foods": {"food": []}}
+
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: FakeResp())
+
+    out = get_fatsecret_info(Barcode(code="000"))
+    assert isinstance(out, ProductError)
+    assert out.status_code == 404
+
+
+def test_fatsecret_info_http_error(monkeypatch):
+    """FatSecret returns non-200 → should produce ProductError(status_code)."""
+    class FakeResp:
+        status_code = 401
+        def raise_for_status(self): pass
+        def json(self): return {}
+
+    import requests
+    monkeypatch.setattr(requests, "get", lambda *a, **k: FakeResp())
+
+    out = get_fatsecret_info(Barcode(code="bad-auth"))
+    assert isinstance(out, ProductError)
+    assert out.status_code == 401
