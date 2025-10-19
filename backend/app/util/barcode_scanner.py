@@ -7,6 +7,7 @@ from .schemas import ProductInfo, Barcode, ProductError
 from .config import RECALL_DB_DISABLED
 from .dynamo_util import DynamoUtil
 from .product_api import get_nutritionix_info, get_openfoodfact_info
+from app.services.fatsecret_service import get_fatsecret_barcode_info
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -46,6 +47,12 @@ def get_products_info(barcodes: List[Barcode], ddb_util: DynamoUtil) -> Tuple[Li
         if type(openfoodfact_info) is ProductInfo:
             openfoodfact_info.recall = is_recalled
             product_info_list.append(openfoodfact_info)
+            continue
+
+        fatsecret_info = get_fatsecret_barcode_info(barcode)
+        if isinstance(fatsecret_info, ProductInfo):
+            fatsecret_info.recall = is_recalled
+            product_info_list.append(fatsecret_info)
             continue
         
         invalid_barcodes.append(openfoodfact_info)
