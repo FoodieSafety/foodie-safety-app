@@ -8,7 +8,7 @@ from .models import Product
 from .schemas import ProductInfo, Barcode, ProductError
 from .config import RECALL_DB_DISABLED
 from .dynamo_util import DynamoUtil
-from .product_api import get_nutritionix_info, get_openfoodfact_info
+from .product_api import get_nutritionix_info, get_openfoodfact_info, get_fatsecret_info 
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -24,6 +24,9 @@ recall_table_name = os.getenv("DYNAMODB_RECALL_TABLE")
 #     return barcodes
 
 def get_recall_info(barcode: Barcode, ddb_util: DynamoUtil) -> bool:
+    """
+    Check if a given product barcode is in the recall database table.
+    """
     if RECALL_DB_DISABLED:
         return False
     if ddb_util.scan_table(recall_table_name, "UPCs", barcode.code):
@@ -37,6 +40,7 @@ def get_products_info(barcodes: List[Barcode], ddb_util: DynamoUtil, db:Session)
     db_products = check_db_for_upcs(barcodes, db) # Get codes for the list of barcodes if any existed
     for barcode in barcodes:
 
+    for barcode in barcodes:
         is_recalled = get_recall_info(barcode, ddb_util)
         db_present = False # Initialize a flag for db check
         for product in db_products: # Iterate over the list of db fetched products and check if any of the codes exist in the list
@@ -46,19 +50,29 @@ def get_products_info(barcodes: List[Barcode], ddb_util: DynamoUtil, db:Session)
                 break # break the inner loop
         if not db_present: # Check flag and proceed for API calls
 
-            nutritionix_info = get_nutritionix_info(barcode)
-            if type(nutritionix_info) is ProductInfo:
-                nutritionix_info.recall = is_recalled
-                product_info_list.append(nutritionix_info)
-                continue
+        # Try Nutritionix API
+          nutritionix_info = get_nutritionix_info(barcode)
+          if isinstance(nutritionix_info, ProductInfo):
+              nutritionix_info.recall = is_recalled
+              product_info_list.append(nutritionix_info)
+              continue
 
-            openfoodfact_info = get_openfoodfact_info(barcode)
-            if type(openfoodfact_info) is ProductInfo:
-                openfoodfact_info.recall = is_recalled
-                product_info_list.append(openfoodfact_info)
-                continue
+          # Try OpenFoodFacts API
+          openfoodfact_info = get_openfoodfact_info(barcode)
+          if isinstance(openfoodfact_info, ProductInfo):
+              openfoodfact_info.recall = is_recalled
+              product_info_list.append(openfoodfact_info)
+              continue
 
-            invalid_barcodes.append(openfoodfact_info)
+          # Try FatSecret API 
+          fatsecret_info = get_fatsecret_info(barcode)
+          if isinstance(fatsecret_info, ProductInfo):
+              fatsecret_info.recall = is_recalled
+              product_info_list.append(fatsecret_info)
+              continue
+
+          # If all sources failed, append the last known error
+          invalid_barcodes.append(ProductError(code=barcode.code, status_code=404))
         
     return product_info_list, invalid_barcodes
 
