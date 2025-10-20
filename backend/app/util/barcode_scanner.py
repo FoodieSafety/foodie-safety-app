@@ -38,7 +38,6 @@ def get_products_info(barcodes: List[Barcode], ddb_util: DynamoUtil, db:Session)
     product_info_list: List[ProductInfo] = []
     invalid_barcodes: List[ProductError] = []
     db_products = check_db_for_upcs(barcodes, db) # Get codes for the list of barcodes if any existed
-    for barcode in barcodes:
 
     for barcode in barcodes:
         is_recalled = get_recall_info(barcode, ddb_util)
