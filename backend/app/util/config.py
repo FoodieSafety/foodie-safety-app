@@ -17,6 +17,15 @@ FATSECRET_BASE_URL = os.getenv("FATSECRET_BASE_URL", "https://platform.fatsecret
 
 UNKNOWN_PLACEHOLDER = '-Unknown-'
 
+# Chat API Variables
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+GEMINI_API_HEADERS = {
+        "Content-Type": "application/json",
+        "X-goog-api-key": os.getenv("GEMINI_KEY")
+}
+
+CHAT_ERROR_MSG = "AI Assistant Could Not Respond"
+
 # Local host variables
 FRONTEND_URL = "http://localhost:3000"
 
