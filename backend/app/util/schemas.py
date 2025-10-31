@@ -89,3 +89,6 @@ class UserChats(BaseModel):
     user_id: int
     chats:List[ChatSession]
 
+class ChatError(BaseModel):
+    status_code: int
+

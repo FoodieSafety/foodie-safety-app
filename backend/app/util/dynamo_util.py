@@ -39,3 +39,20 @@ class DynamoUtil:
         matching_items = scan_response.get("Items", [])
         return matching_items
 
+    def get_item(self, table_name: str, key_attribute: str, key_value: str):
+        """
+        Batch writing data into table
+        :param table_name: Name of the table to write to.
+        :param items: List of items to write to the table.
+        :param key_attribute: Key attribute to check for duplicates
+        :return: None
+        """
+        table = self.ddb.Table(table_name)
+        # Query using FilterExpression
+        scan_response = table.get_item(
+            Key={f'{key_attribute}': key_value},
+        )
+
+        item = scan_response.get('Item')
+        return item
+
