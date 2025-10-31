@@ -30,13 +30,12 @@ class ChatDao:
         """
         table_name = os.getenv('DYNAMODB_CHAT_TABLE')
         item = ddb_util.get_item(table_name, "user_id", user_id)
+        if not item:
+            session_uuid = str(uuid.uuid4())
+            ddb_util.ddb.Table(table_name).put_item(Item=UserChats(user_id=user_id, chats=[ChatSession(session_id=session_uuid, msgs=msgs)]))
+            return ChatDaoResponse(status_code = 200, msg=session_uuid)
+        sessions = item.get('chats', [])
         if session_id:
-            if not item:
-                session_uuid = str(uuid.uuid4())
-                ddb_util.ddb.Table(table_name).put_item(
-                    Item=UserChats(user_id=user_id, chats=[ChatSession(session_id=session_uuid, msgs=msgs)]))
-                return ChatDaoResponse(status_code=200, msg=session_uuid)
-            sessions = item.get('chats', [])
             for session in sessions:
                 if session.get('session_id') == session_id:
                     # convert msgs list to json and append to session["msg"]
