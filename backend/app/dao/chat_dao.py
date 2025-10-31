@@ -44,6 +44,6 @@ class ChatDao:
                     ddb_util.ddb.Table(table_name).put_item(Item=item)
                     return ChatDaoResponse(status_code = 200, msg="Chat msgs enqueued")
         # Code reaches this point it means that the user exists but the session does not exist
-        item["chats"].append(ChatSession(session_id=session_id, msgs=msgs))
+        item["chats"].append(ChatSession(session_id=str(uuid.uuid4()), msgs=msgs))
         ddb_util.ddb.Table(table_name).put_item(Item=item)
         return ChatDaoResponse(status_code = 200, msg="Chat msgs enqueued in new session")
