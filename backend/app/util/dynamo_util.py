@@ -61,26 +61,50 @@ class DynamoUtil:
         item = scan_response.get('Item')
         return item
 
-    def init_chat_tables(self, table_name:str):
+    def create_table(
+            self,
+            table_name: str,
+            attribute_definitions: List[Dict[str, str]],
+            key_schema: List[Dict[str, str]],
+            billing_mode: str = "PAY_PER_REQUEST",
+            provisioned_throughput: Optional[Dict[str, int]] = None,
+    ) -> None:
+        """
+        Create a DynamoDB table if it doesn't exist
+        :param table_name: Name of the table
+        :param attribute_definitions: List of attributes definitions (name and type)
+        :param key_schema: Key schema for the table (partition and sort keys)
+        :param billing_mode: Billing mode for the table
+        :param provisioned_throughput: Provisioned throughput settings (read and write units)
+        :return: None
+        """
         try:
-            table = self.ddb.Table(table_name)
-            table.load()  # check if table exists
-            print(f"DynamoDB table '{table_name}' already exists.")
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "ResourceNotFoundException":
-                print(f"Creating DynamoDB table '{table_name}'...")
+            existing_tables = [table.name for table in self.ddb.tables.all()]
+            if table_name in existing_tables:
+                print( f"Table '{table_name}' already exists.")
+                return
 
-                table = self.ddb.create_table(
-                    TableName=table_name,
-                    KeySchema=[
-                        {"AttributeName": "user_id", "KeyType": "HASH"},
-                    ],
-                    AttributeDefinitions=[
-                        {"AttributeName": "user_id", "AttributeType": "N"},
-                    ],
-                    BillingMode="PAY_PER_REQUEST",  # on-demand billing
-                )
-                table.wait_until_exists()
-                print(f"DynamoDB table '{table_name}' created successfully.")
-            else:
-                raise
+            # Define table creation parameters
+            table_params = {
+                "TableName": table_name,
+                "AttributeDefinitions": attribute_definitions,
+                "KeySchema": key_schema,
+                "BillingMode": billing_mode,
+            }
+
+            # Add provisioned throughput if billing mode is "PROVISIONED"
+            if billing_mode == "PROVISIONED":
+                if provisioned_throughput is None:
+                    raise ValueError("Provisioned throughput must be specified for PROVISIONED billing mode.")
+                table_params["ProvisionedThroughput"] = provisioned_throughput
+
+            # Create the table
+            table = self.ddb.create_table(**table_params)
+
+            # Wait until the table is created
+            table.wait_until_exists()
+            print(f"Table '{table_name}' created successfully.")
+
+        except ClientError as e:
+            print("error", f"Failed to create table {table_name}: {e}")
+            raise

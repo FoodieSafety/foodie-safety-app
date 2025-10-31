@@ -31,13 +31,19 @@ class ChatDao:
         table_name = os.getenv('DYNAMODB_CHAT_TABLE')
         item = ddb_util.get_item(table_name, "user_id", user_id)
         if not item:
-            return ChatDaoResponse(status_code = 404, msg="User not found")
+            ddb_util.ddb.Table(table_name).put_item(Item=UserChats(user_id=user_id, chats=[ChatSession(session_id=str(uuid.uuid4()), msgs=msgs)]))
+            return ChatDaoResponse(status_code = 200, msg="New user and session created")
         sessions = item.get('chats', [])
-        for session in sessions:
-            if session.get('session_id') == session_id:
-                for msg in msgs:
-                    session['msgs'].append(msg.model_dump())
-                item["chats"] = sessions
-                ddb_util.ddb.Table(table_name).put_item(Item=item)
-                return ChatDaoResponse(status_code = 200, msg="Chat session enqueued")
-        return ChatDaoResponse(status_code = 404, msg="Unable to enqueue chat messages")
+        if session_id:
+            for session in sessions:
+                if session.get('session_id') == session_id:
+                    # convert msgs list to json and append to session["msg"]
+                    for msg in msgs:
+                        session['msgs'].append(msg.model_dump())
+                    item["chats"] = sessions
+                    ddb_util.ddb.Table(table_name).put_item(Item=item)
+                    return ChatDaoResponse(status_code = 200, msg="Chat msgs enqueued")
+        # Code reaches this point it means that the user exists but the session does not exist
+        item["chats"].append(ChatSession(session_id=session_id, msgs=msgs))
+        ddb_util.ddb.Table(table_name).put_item(Item=item)
+        return ChatDaoResponse(status_code = 200, msg="Chat msgs enqueued in new session")

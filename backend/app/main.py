@@ -16,7 +16,11 @@ app = FastAPI()
 app.middleware("http")(log_requests)
 app = add_cors(app=app)
 
-get_ddb_util().init_chat_tables(f"{os.getenv('DYNAMODB_CHAT_TABLE')}")
+get_ddb_util().create_table(f"{os.getenv('DYNAMODB_CHAT_TABLE')}", attribute_definitions=[
+                        {"AttributeName": "user_id", "AttributeType": "N"},
+                    ], key_schema=[
+                        {"AttributeName": "user_id", "KeyType": "HASH"},
+                    ])
 
 # Include Routers
 app.include_router(user_router)
