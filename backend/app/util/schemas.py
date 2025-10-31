@@ -76,7 +76,7 @@ class MsgBy(Enum):
 
 # Object for individual message
 class ChatMsg(BaseModel):
-    by:MsgBy
+    by:int
     content:str
 
 # For an individual chat session
@@ -89,6 +89,7 @@ class UserChats(BaseModel):
     user_id: int
     chats:List[ChatSession]
 
-class ChatError(BaseModel):
+class ChatDaoResponse(BaseModel):
     status_code: int
+    msg:str
 
