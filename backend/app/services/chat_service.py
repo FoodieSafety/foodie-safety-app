@@ -5,15 +5,10 @@ from typing import List
 from ..controllers.chat_controller import ChatController
 from ..util.database import get_db
 from ..util.oauth2 import get_current_user
-from ..util.dynamo_util import DynamoUtil
+from ..util.dynamo_util import DynamoUtil, get_ddb_util
 
 # Create router object
 router = APIRouter(prefix="/chat", tags=["Chat"])
-
-# Instantiate and get recall ddb connection
-def get_ddb_util():
-        ddb_endpoint = os.getenv("DYNAMODB_ENDPOINT")
-        return DynamoUtil(endpoint=ddb_endpoint)
 
 @router.post("/message", response_model=List[str], status_code=status.HTTP_202_ACCEPTED)
 async def post_message(
