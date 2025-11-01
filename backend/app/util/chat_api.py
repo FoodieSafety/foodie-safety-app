@@ -1,7 +1,7 @@
 import requests
 from typing import List
-
-from .config import GEMINI_API_URL, GEMINI_API_HEADERS, CHAT_ERROR_MSG
+from fastapi import HTTPException, status
+from .config import GEMINI_API_URL, GEMINI_API_HEADERS
 from .schemas import ChatMsg, MsgBy
 
 def get_gemini_response(context: List[ChatMsg]):
@@ -19,14 +19,23 @@ def get_gemini_response(context: List[ChatMsg]):
 
     candidates = response.json().get("candidates", [])
     if not candidates:
-        return [CHAT_ERROR_MSG]
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Gemini could not provide response candidates"
+        )
     
     content = candidates[0].get("content", [])
     if not content:
-        return [CHAT_ERROR_MSG]
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Gemini could not provide response content"
+        )
     
     messages = [ChatMsg(by=MsgBy.LLM, content=part["text"]) for part in content.get("parts", []) if "text" in part]
     if not messages:
-        return [CHAT_ERROR_MSG]
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Gemini could not provide response text"
+        )
     
     return messages
