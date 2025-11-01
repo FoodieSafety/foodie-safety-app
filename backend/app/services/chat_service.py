@@ -10,6 +10,12 @@ from ..util.schemas import ChatResponse, ChatMsg, MsgBy
 # Create router object
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
+# Create the chat table
+get_ddb_util().create_table(
+    table_name=f"{os.getenv('DYNAMODB_CHAT_TABLE')}", 
+    attribute_definitions=[{"AttributeName": "user_id", "AttributeType": "N"}], 
+    key_schema=[{"AttributeName": "user_id", "KeyType": "HASH"}])
+
 @router.post("/message", response_model=ChatResponse, status_code=status.HTTP_202_ACCEPTED)
 async def post_message(
         session_id: str = Form(...),
