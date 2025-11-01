@@ -1,7 +1,7 @@
 import os
 import uuid
 from typing import List
-
+from fastapi import HTTPException, status
 from app.util.dynamo_util import DynamoUtil
 from app.util.schemas import ChatResponse, UserChats, ChatSession, ChatMsg
 
@@ -15,12 +15,18 @@ class ChatDao:
         table_name = os.getenv('DYNAMODB_CHAT_TABLE')
         item = ddb_util.get_item(table_name, "user_id", user_id)
         if not item:
-            return ChatResponse(status_code = 404, msg="User not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with id {user_id} has no chat sessions"
+            )
         sessions = item.get('chats', [])
         for session in sessions:
             if session.get('session_id') == session_id:
                 return ChatSession(**session)  # Found the session
-        return ChatResponse(status_code = 404, msg="Session not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} has no chat session with id {session_id}"
+        )
 
     @staticmethod
     def enqueue_msgs(user_id, session_id, msgs: List[ChatMsg], ddb_util:DynamoUtil) -> ChatResponse:
