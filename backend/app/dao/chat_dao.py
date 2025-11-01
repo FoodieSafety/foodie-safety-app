@@ -1,10 +1,9 @@
 import os
 import uuid
 from typing import List
-from uuid import uuid5
 
-from app.util.dynamo_util import DynamoUtil, get_ddb_util
-from app.util.schemas import ChatDaoResponse, UserChats, ChatSession, ChatMsg, MsgBy
+from app.util.dynamo_util import DynamoUtil
+from app.util.schemas import ChatResponse, UserChats, ChatSession, ChatMsg
 
 
 class ChatDao:
@@ -16,15 +15,15 @@ class ChatDao:
         table_name = os.getenv('DYNAMODB_CHAT_TABLE')
         item = ddb_util.get_item(table_name, "user_id", user_id)
         if not item:
-            return ChatDaoResponse(status_code = 404, msg="User not found")
+            return ChatResponse(status_code = 404, msg="User not found")
         sessions = item.get('chats', [])
         for session in sessions:
             if session.get('session_id') == session_id:
                 return ChatSession(**session)  # Found the session
-        return ChatDaoResponse(status_code = 404, msg="Session not found")
+        return ChatResponse(status_code = 404, msg="Session not found")
 
     @staticmethod
-    def enqueue_msgs(user_id, session_id, msgs: List[ChatMsg], ddb_util:DynamoUtil):
+    def enqueue_msgs(user_id, session_id, msgs: List[ChatMsg], ddb_util:DynamoUtil) -> ChatResponse:
         """
         Enqueues multiple messages in a chat session for a given user_id and session_id
         """
@@ -33,7 +32,7 @@ class ChatDao:
         if not item:
             session_uuid = str(uuid.uuid4())
             ddb_util.ddb.Table(table_name).put_item(Item=UserChats(user_id=user_id, chats=[ChatSession(session_id=session_uuid, msgs=msgs)]).model_dump())
-            return ChatDaoResponse(status_code = 200, msg=session_uuid)
+            return ChatResponse(session_id=session_uuid, msgs=msgs)
         sessions = item.get('chats', [])
         if session_id:
             for session in sessions:
@@ -43,9 +42,9 @@ class ChatDao:
                         session['msgs'].append(msg.model_dump())
                     item["chats"] = sessions
                     ddb_util.ddb.Table(table_name).put_item(Item=item)
-                    return ChatDaoResponse(status_code = 200, msg="Chat msgs enqueued")
+                    return ChatResponse(session_id=session_id, msgs=msgs)
         # Code reaches this point it means that the user exists but the session does not exist
         session_uuid = str(uuid.uuid4())
         item["chats"].append(ChatSession(session_id=session_uuid, msgs=msgs).model_dump())
         ddb_util.ddb.Table(table_name).put_item(Item=item)
-        return ChatDaoResponse(status_code = 200, msg=session_uuid)
+        return ChatResponse(session_id=session_uuid, msgs=msgs)

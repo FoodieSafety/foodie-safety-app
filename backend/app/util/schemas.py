@@ -89,7 +89,7 @@ class UserChats(BaseModel):
     user_id: int
     chats:List[ChatSession]
 
-class ChatDaoResponse(BaseModel):
-    status_code: int
-    msg:str
+class ChatResponse(BaseModel):
+    session_id: str
+    msgs: List[ChatMsg]
 

@@ -1,16 +1,16 @@
 import os
 from fastapi import APIRouter, status, Form, Depends
 from sqlalchemy.orm import Session
-from typing import List
 from ..controllers.chat_controller import ChatController
 from ..util.database import get_db
 from ..util.oauth2 import get_current_user
 from ..util.dynamo_util import DynamoUtil, get_ddb_util
+from ..util.schemas import ChatResponse, ChatMsg, MsgBy
 
 # Create router object
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
-@router.post("/message", response_model=List[str], status_code=status.HTTP_202_ACCEPTED)
+@router.post("/message", response_model=ChatResponse, status_code=status.HTTP_202_ACCEPTED)
 async def post_message(
         session_id: str = Form(...),
         message: str = Form(...),
@@ -27,4 +27,5 @@ async def post_message(
     :param token_data: user token
     :return: AI response
     """
-    return ChatController.post_message(session_id=session_id, message=message, db=db, ddb_util=ddb_util, token_data=token_data)
+    messages = [ChatMsg(by=MsgBy.USER, content=message)]
+    return ChatController.post_messages(session_id=session_id, messages=messages, db=db, ddb_util=ddb_util, token_data=token_data)

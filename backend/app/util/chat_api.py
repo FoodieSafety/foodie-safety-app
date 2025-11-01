@@ -1,15 +1,19 @@
 import requests
-from .config import GEMINI_API_URL, GEMINI_API_HEADERS, CHAT_ERROR_MSG
+from typing import List
 
-def get_gemini_response(message: str):
+from .config import GEMINI_API_URL, GEMINI_API_HEADERS, CHAT_ERROR_MSG
+from .schemas import ChatMsg, MsgBy
+
+def get_gemini_response(context: List[ChatMsg]):
     payload = {
         "contents": [
             {
+                "role": "user" if msgObj.by else "model",
                 "parts": [
-                    { "text": message }
+                    { "text": msgObj.content } 
                 ]
             }
-        ]
+        for msgObj in context]
     }
     response = requests.post(GEMINI_API_URL, headers=GEMINI_API_HEADERS, json=payload)
 
@@ -21,8 +25,8 @@ def get_gemini_response(message: str):
     if not content:
         return [CHAT_ERROR_MSG]
     
-    texts = [part["text"] for part in content.get("parts", []) if "text" in part]
-    if not texts:
+    messages = [ChatMsg(by=MsgBy.LLM, content=part["text"]) for part in content.get("parts", []) if "text" in part]
+    if not messages:
         return [CHAT_ERROR_MSG]
     
-    return texts
+    return messages
