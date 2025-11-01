@@ -31,3 +31,11 @@ FRONTEND_URL = "http://localhost:3000"
 
 # Recall Table variables
 RECALL_DB_DISABLED = os.getenv("DISABLE_RECALL_DB", "false").lower() == "true"
+
+# System Prompt
+GEMINI_SYSTEM_PROMPT = os.getenv("GEMINI_SYSTEM_PROMPT", "").strip()
+GEMINI_SYSTEM_PROMPT_PATH = os.getenv(
+    "GEMINI_SYSTEM_PROMPT_PATH",
+    "backend/app/services/llm/system_prompt.txt"
+)
+SYSTEM_PROMPT_VERSION = int(os.getenv("SYSTEM_PROMPT_VERSION", "1"))

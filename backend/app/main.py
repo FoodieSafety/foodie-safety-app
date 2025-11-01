@@ -9,6 +9,7 @@ from app.services.auth import router as auth_router
 from app.services.product_service import router as product_router
 from app.services.chat_service import router as chat_router
 from app.routes.subscription_routes import router as subscription_router
+from app.routes.system_prompt_routes import router as sys_prompt_router
 from middlewares.cors_middleware import add_cors
 # Create a FastAPI instance
 app = FastAPI()
@@ -23,6 +24,7 @@ app.include_router(auth_router)
 app.include_router(product_router)
 app.include_router(chat_router)
 app.include_router(subscription_router)
+app.include_router(sys_prompt_router)
 
 @app.get("/")
 async def index() -> dict:
