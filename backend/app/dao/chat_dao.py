@@ -20,7 +20,7 @@ class ChatDao:
         sessions = item.get('chats', [])
         for session in sessions:
             if session.get('session_id') == session_id:
-                return session  # Found the session
+                return ChatSession(**session)  # Found the session
         return ChatDaoResponse(status_code = 404, msg="Session not found")
 
     @staticmethod
@@ -32,7 +32,7 @@ class ChatDao:
         item = ddb_util.get_item(table_name, "user_id", user_id)
         if not item:
             session_uuid = str(uuid.uuid4())
-            ddb_util.ddb.Table(table_name).put_item(Item=UserChats(user_id=user_id, chats=[ChatSession(session_id=session_uuid, msgs=msgs)]))
+            ddb_util.ddb.Table(table_name).put_item(Item=UserChats(user_id=user_id, chats=[ChatSession(session_id=session_uuid, msgs=msgs)]).model_dump())
             return ChatDaoResponse(status_code = 200, msg=session_uuid)
         sessions = item.get('chats', [])
         if session_id:
@@ -46,6 +46,6 @@ class ChatDao:
                     return ChatDaoResponse(status_code = 200, msg="Chat msgs enqueued")
         # Code reaches this point it means that the user exists but the session does not exist
         session_uuid = str(uuid.uuid4())
-        item["chats"].append(ChatSession(session_id=session_uuid, msgs=msgs))
+        item["chats"].append(ChatSession(session_id=session_uuid, msgs=msgs).model_dump())
         ddb_util.ddb.Table(table_name).put_item(Item=item)
         return ChatDaoResponse(status_code = 200, msg=session_uuid)
