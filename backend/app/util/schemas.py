@@ -1,6 +1,8 @@
+from enum import Enum
+
 from pydantic import BaseModel, EmailStr, validator
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from fastapi import UploadFile
 
 class UserBase(BaseModel):
@@ -66,3 +68,28 @@ class SubscriptionCreate(BaseModel):
 class SubscriptionResponse(SubscriptionCreate):
     subscription_id: int
     subscribed_at: datetime
+
+# Enum to represent the msg type
+class MsgBy(Enum):
+    LLM=0
+    USER=1
+
+# Object for individual message
+class ChatMsg(BaseModel):
+    by:int
+    content:str
+
+# For an individual chat session
+class ChatSession(BaseModel):
+    session_id:str
+    msgs: List[ChatMsg]
+
+# List of chat sessions for a user
+class UserChats(BaseModel):
+    user_id: int
+    chats:List[ChatSession]
+
+class ChatResponse(BaseModel):
+    session_id: str
+    msgs: List[ChatMsg]
+
