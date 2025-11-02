@@ -20,9 +20,16 @@ const LoginForm = () => {
   });
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [signupSuccess, setSignupSuccess] = useState('');
+  const [signupError, setSignupError] = useState('');
 
   useEffect(() => {
     setIsLoginMode(location.pathname === '/login');
+    // when switch mode, clear all error and success messages
+    setLoginError('');
+    setSignupSuccess('');
+    setSignupError('');
   }, [location.pathname]);
 
   const handleInputChange = (e) => {
@@ -77,10 +84,10 @@ const LoginForm = () => {
         const token = data.access_token;
 
         await login(token);
-        alert('Login successful!');
         navigate('/');
       } else {
-        alert('Login failed: ' + data.detail);
+        console.error('Login failed:', data.detail);
+        setLoginError(data.detail || 'Login failed. Please check your credentials.');
       }
     } else {
       const createUserForm = {
@@ -99,15 +106,21 @@ const LoginForm = () => {
         });
 
         if (response.ok) {
-          alert('Sign-up successful! Please log in.');
-          navigate('/login');
+          setSignupSuccess('Sign-up successful! Please log in.');
+          setSignupError('');
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
         } else {
           const errorData = await response.json();
-          alert('Sign-up failed: ' + errorData.detail);
+          console.error('Sign-up failed:', errorData.detail);
+          setSignupError(errorData.detail || 'Sign-up failed. Please check your information and try again.');
+          setSignupSuccess('');
         }
       } catch (error) {
         console.error('Error during sign-up:', error);
-        alert('An error occurred during sign-up.');
+        setSignupError('An error occurred during sign-up. Please retry.');
+        setSignupSuccess('');
       }
     }
   };
@@ -127,6 +140,46 @@ const LoginForm = () => {
                   {isLoginMode ? 'Need an account? Sign up' : 'Already have an account? Log in'}
                 </button>
               </div>
+
+              {/* Login Error Alert */}
+              {isLoginMode && loginError && (
+                <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                  <strong>Login Failed!</strong> {loginError}
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    onClick={() => setLoginError('')}
+                    aria-label="Close"
+                  ></button>
+                </div>
+              )}
+
+              {/* Sign-up Success Alert */}
+              {!isLoginMode && signupSuccess && (
+                <div className="alert alert-success alert-dismissible fade show" role="alert">
+                  <strong>Sign-up Successful!</strong> {signupSuccess}
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    onClick={() => setSignupSuccess('')}
+                    aria-label="Close"
+                  ></button>
+                </div>
+              )}
+
+              {/* Sign-up Error Alert */}
+              {!isLoginMode && signupError && (
+                <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                  <strong>Sign-up Failed!</strong> {signupError}
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    onClick={() => setSignupError('')}
+                    aria-label="Close"
+                  ></button>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit}>
                 {!isLoginMode && (
                   <>

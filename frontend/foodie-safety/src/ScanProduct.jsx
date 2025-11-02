@@ -10,7 +10,7 @@ import config from './config';
 const ScanProduct = () => {
   const [barcode, setBarcode] = useState('');
   const [error, setError] = useState('');
-  const { user, access_token } = useAuth();
+  const { user, access_token, authenticatedFetch } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,11 +29,8 @@ const ScanProduct = () => {
       const formData = new FormData();
       formData.append("str_barcodes", normalizedBarcode);
 
-      const response = await fetch(`${config.API_BASE_URL}/products`, {
+      const response = await authenticatedFetch(`${config.API_BASE_URL}/products`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
         body: formData,
       });
 
