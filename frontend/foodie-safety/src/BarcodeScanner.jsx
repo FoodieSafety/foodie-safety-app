@@ -2,32 +2,36 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import Quagga from "@ericblade/quagga2";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import PropTypes from 'prop-types';
+import { smartPreprocess, preprocessImage, getNextQualityLevel } from './utils/imagePreprocessor';
 
 const BarcodeScanner = ({ onScan }) => {
   const [error, setError] = useState("");
   const [scanning, setScanning] = useState(true);
-  const [scanMode, setScanMode] = useState("camera"); // "camera" or "image"
+  const [scanMode, setScanMode] = useState("camera"); 
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [processing, setProcessing] = useState(false);
   
-  // ============= Engine selection =============
-  const [scanEngine, setScanEngine] = useState("quagga"); // "quagga" or "zxing"
+
+  const [scanEngine, setScanEngine] = useState("quagga"); 
   
-  const quaggaVideoRef = useRef(null); // QuaggaJS uses a div container
-  const zxingVideoRef = useRef(null); // ZXing uses a video element directly
+  const quaggaVideoRef = useRef(null); 
+  const zxingVideoRef = useRef(null); 
   const scannerRef = useRef(null);
   const fileInputRef = useRef(null);
   const isInitializingRef = useRef(false);
-  const zxingReaderRef = useRef(null); // ZXing reader instance
+  const zxingReaderRef = useRef(null); 
+  const originalImageRef = useRef(null); 
+  const currentPresetRef = useRef(null); 
+  const isRetryingRef = useRef(false); 
 
-  // ============= QuaggaJS function=============
+
   const handleDetectedQuagga = useCallback((result) => {
     if (!result || !result.codeResult) return;
     
     const code = result.codeResult.code;
     
-    // Validate barcode format (numeric and reasonable length)
+    
     if (code && /^\d+$/.test(code) && code.length >= 8 && code.length <= 13) {
       console.log("[QuaggaJS] Barcode detected:", code);
       setScanning(false);
@@ -131,7 +135,9 @@ const BarcodeScanner = ({ onScan }) => {
   const stopZXingScanner = useCallback(() => {
     try {
       if (zxingReaderRef.current) {
-        zxingReaderRef.current.reset();
+        if (typeof zxingReaderRef.current.stopContinuousDecode === 'function') {
+          zxingReaderRef.current.stopContinuousDecode();
+        }
         zxingReaderRef.current = null;
       }
     } catch (err) {
@@ -249,11 +255,50 @@ const BarcodeScanner = ({ onScan }) => {
     setError("");
 
     const reader = new FileReader();
-    reader.onload = (e) => {
-      setImagePreview(e.target.result);
-      processImage(e.target.result);
+    reader.onload = async (e) => {
+      const originalImage = e.target.result;
+      originalImageRef.current = originalImage;
+      isRetryingRef.current = false;
+      
+      try {
+        const { image: processedImage, preset } = await smartPreprocess(originalImage);
+        currentPresetRef.current = preset;
+        setImagePreview(processedImage);
+        processImage(processedImage);
+      } catch (error) {
+        currentPresetRef.current = null;
+        setImagePreview(originalImage);
+        processImage(originalImage);
+      }
     };
     reader.readAsDataURL(file);
+  };
+
+  const tryUpgradeAndRetry = async () => {
+    if (!originalImageRef.current || !currentPresetRef.current) {
+      return false;
+    }
+
+    const nextLevel = getNextQualityLevel(currentPresetRef.current);
+    if (!nextLevel) {
+      console.log('[Barcode Scanner] No higher quality level available, recognition failed');
+      return false;
+    }
+
+    console.log(`[Barcode Scanner] Upgrading to ${nextLevel.level} quality...`);
+    
+    try {
+      const upgradedImage = await preprocessImage(originalImageRef.current, nextLevel.preset);
+      currentPresetRef.current = nextLevel.preset;
+      isRetryingRef.current = true;
+      setImagePreview(upgradedImage);
+      setProcessing(true);
+      processImage(upgradedImage);
+      return true;
+    } catch (error) {
+      console.error('[Barcode Scanner] Failed to upgrade image:', error);
+      return false;
+    }
   };
 
   const processImage = (imageSrc) => {
@@ -291,27 +336,32 @@ const BarcodeScanner = ({ onScan }) => {
           halfSample: true
         }
       },
-      (result) => {
-        setProcessing(false);
-        
+      async (result) => {
         if (result && result.codeResult) {
           const code = result.codeResult.code;
           
           if (code && /^\d+$/.test(code) && code.length >= 8 && code.length <= 13) {
-            console.log("[QuaggaJS] Barcode detected in image:", code);
+            if (isRetryingRef.current) {
+              console.log("[QuaggaJS] ✓ Barcode detected after quality upgrade:", code);
+            } else {
+              console.log("[QuaggaJS] Barcode detected in image:", code);
+            }
+            setProcessing(false);
             setError("");
             onScan(code);
-          } else {
-            setError("[QuaggaJS] Unable to recognize a valid barcode, please try another image");
+            return;
           }
-        } else {
+        }
+        
+        const upgraded = await tryUpgradeAndRetry();
+        if (!upgraded) {
+          setProcessing(false);
           setError("[QuaggaJS] No barcode detected in image\nPlease ensure:\n1. Image is clear\n2. Good lighting\n3. Barcode is fully visible");
         }
       }
     );
   };
 
-  // ZXing image recognition
   const processImageWithZXing = async (imageSrc) => {
     try {
       const codeReader = new BrowserMultiFormatReader();
@@ -322,18 +372,24 @@ const BarcodeScanner = ({ onScan }) => {
           const result = await codeReader.decodeFromImageElement(img);
           const code = result.getText();
           
-          setProcessing(false);
-          
           if (code && /^\d+$/.test(code) && code.length >= 8 && code.length <= 13) {
-            console.log("[ZXing] Barcode detected in image:", code);
+            if (isRetryingRef.current) {
+              console.log("[ZXing] ✓ Barcode detected after quality upgrade:", code);
+            } else {
+              console.log("[ZXing] Barcode detected in image:", code);
+            }
+            setProcessing(false);
             setError("");
             onScan(code);
-          } else {
-            setError("[ZXing] Unable to recognize a valid barcode, please try another image");
+            return;
           }
         } catch (err) {
+          // Recognition failed, continue to upgrade logic
+        }
+        
+        const upgraded = await tryUpgradeAndRetry();
+        if (!upgraded) {
           setProcessing(false);
-          console.error("[ZXing] Image decode error:", err);
           setError("[ZXing] No barcode detected in image\nPlease ensure:\n1. Image is clear\n2. Good lighting\n3. Barcode is fully visible");
         }
       };
@@ -341,7 +397,6 @@ const BarcodeScanner = ({ onScan }) => {
       img.src = imageSrc;
     } catch (err) {
       setProcessing(false);
-      console.error("[ZXing] Error processing image:", err);
       setError(`[ZXing] Error processing image: ${err.message}`);
     }
   };
@@ -358,6 +413,9 @@ const BarcodeScanner = ({ onScan }) => {
       isInitializingRef.current = false;
     }
     
+    originalImageRef.current = null;
+    currentPresetRef.current = null;
+    isRetryingRef.current = false;
     setScanMode(mode);
     setError("");
     setSelectedImage(null);
