@@ -6,14 +6,9 @@ from typing import List, Dict, Optional
 
 from .config import USDA_API_URL
 from .logging_util import Logger
+from food_recall_processor.utils.lambda_utils import parse_upc
 
 
-def _parseUPC(description: str) -> set:
-    upc_pattern = r"UPC\s*#?\s*[A-Za-z]*\s*:?\s*([\d\s-]{10,})"
-    upc_matches = re.findall(upc_pattern, description)  # Find all UPC occurrences
-
-    upc_codes = [re.sub(r"[\s-]+", "", upc_match) for upc_match in upc_matches]  # Remove spaces from UPCs
-    return set(upc_codes)  # Remove duplicates
 
 """
 Unable to filter based on the start end date at the API itself.
@@ -57,7 +52,7 @@ def _format_food_recalls_usda(api_response, start, end):
                 'Distribution': event['field_states'], # Has list of state codes or 'Nationwide' if shipped countrywide
                 # Lot codes are not given explicitly. May occur in field_product_items or field_summary
                 # 'Code Info': event['code_info'],
-                'UPCs': list(_parseUPC(event['field_product_items']) | _parseUPC(event['field_summary'])),
+                'UPCs': list(parse_upc(event['field_product_items']) | parse_upc(event['field_summary'])),
                 'Source': "USDA"
             }
             recalls.append(recall)
