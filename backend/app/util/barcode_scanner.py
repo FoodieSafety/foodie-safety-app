@@ -22,8 +22,6 @@ def decode_image(product_img_bytes: bytes) -> List[Barcode]:
     return barcodes
 
 def get_recall_info(barcode: Barcode, ddb_util: DynamoUtil) -> bool:
-    print(RECALL_DB_DISABLED)
-    
     if RECALL_DB_DISABLED:
         return False
     if ddb_util.scan_table(recall_table_name, "UPCs", barcode.code):
