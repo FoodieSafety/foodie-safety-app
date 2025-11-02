@@ -1,20 +1,19 @@
 import os
-from fastapi import APIRouter, status, Form, Depends
+from fastapi import APIRouter, status, Form, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Tuple
-from ..util.schemas import ProductInfo, Barcode, ProductError
+
+from ..dao.chat_dao import ChatDao
+from ..util.schemas import ProductInfo, Barcode, ProductError, UserChats, ChatMsg, MsgBy
 from ..controllers.product_controller import ProductController
 from ..util.database import get_db
 from ..util.oauth2 import get_current_user
-from ..util.dynamo_util import DynamoUtil
+from ..util.dynamo_util import DynamoUtil, get_ddb_util
 
 # Create router object
 router = APIRouter(prefix="/products", tags=["Products"])
 
-# Instantiate and get recall ddb connection
-def get_ddb_util():
-        ddb_endpoint = os.getenv("DYNAMODB_ENDPOINT")
-        return DynamoUtil(endpoint=ddb_endpoint)
+
 
 @router.post("", response_model=Tuple[List[ProductInfo], List[ProductError]], status_code=status.HTTP_202_ACCEPTED)
 async def upload_products(

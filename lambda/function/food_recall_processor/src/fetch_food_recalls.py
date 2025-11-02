@@ -1,9 +1,10 @@
 import requests
 import re
 import food_recall_processor.utils.openfda_api as OpenFDA
+import food_recall_processor.utils.usda_api as USDA
+from food_recall_processor.utils.logging_util import Logger
 
-
-def formatFoodRecalls(start_date, end_date):
+def fetch_food_recalls(start_time, end_time, logger):
     """
     Formats food recall data into a list of dictionaries for structured use.
 
@@ -13,8 +14,8 @@ def formatFoodRecalls(start_date, end_date):
     distribution pattern, and code information.
 
     Args:
-        start_date (str): The start date for the recall search in YYYY-MM-DD format.
-        end_date (str): The end date for the recall search in YYYY-MM-DD format.
+        start_time (str): The start date for the recall search in YYYY-MM-DD format.
+        end_time (str): The end date for the recall search in YYYY-MM-DD format.
 
     Returns:
         list[dict]: A list of dictionaries containing structured recall data. 
@@ -23,8 +24,18 @@ def formatFoodRecalls(start_date, end_date):
     # List to store food recall from json object
     all_recalls = [] 
     # Fetch the recall data from OpenFDA
-    openfda_recalls = OpenFDA.getFoodRecalls(start_date, end_date)
+    openfda_recalls = OpenFDA.get_food_recalls_fda(start_time, end_time, logger)
+    usda_recalls = USDA.get_food_recalls_usda(start_time, end_time, logger)
+    # This log message will be lost in the sea of messages from DynamoDB. To check, Search "Fetched count" in terminal.
+    # Same for other 'info' level messages. Try searching the terminal.
+    logger.log(
+        "info",
+        f"Fetched count -> OpenFDA - {len(openfda_recalls)} | USDA - {len(usda_recalls)} | from {start_time} to {end_time}."
+    )
+
     if openfda_recalls:
         all_recalls += openfda_recalls
+    if usda_recalls:
+        all_recalls += usda_recalls
 
     return all_recalls    
