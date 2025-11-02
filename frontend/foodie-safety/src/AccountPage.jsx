@@ -11,6 +11,8 @@ const AccountPage = () => {
   const { user, loading, login, access_token, authenticatedFetch } = useAuth();
 
   const [editProfile, setEditProfile] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState('');
+  const [updateError, setUpdateError] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -63,14 +65,23 @@ const AccountPage = () => {
       if (response.ok) {
         login(access_token);
         setEditProfile(false);
-        alert('Profile updated successfully');
+        setUpdateSuccess('Profile updated successfully');
+        setUpdateError('');
+        
+        // 3 seconds later, auto hide success message
+        setTimeout(() => {
+          setUpdateSuccess('');
+        }, 3000);
       } else {
         const errorData = await response.json();
-        alert('Update failed: ' + errorData.detail);
+        console.error('Update failed:', errorData.detail);
+        setUpdateError(errorData.detail || 'Update failed. Please check your information and try again.');
+        setUpdateSuccess('');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('An error occurred while updating the profile');
+      setUpdateError('An error occurred while updating the profile. Please retry.');
+      setUpdateSuccess('');
     }
   };
 
@@ -86,6 +97,32 @@ const AccountPage = () => {
       </div>
 
       <div className="container text-center my-5">
+        {/* Update Success Alert */}
+        {updateSuccess && (
+          <div className="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Success!</strong> {updateSuccess}
+            <button 
+              type="button" 
+              className="btn-close" 
+              onClick={() => setUpdateSuccess('')}
+              aria-label="Close"
+            ></button>
+          </div>
+        )}
+
+        {/* Update Error Alert */}
+        {updateError && (
+          <div className="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Update Failed!</strong> {updateError}
+            <button 
+              type="button" 
+              className="btn-close" 
+              onClick={() => setUpdateError('')}
+              aria-label="Close"
+            ></button>
+          </div>
+        )}
+
         {!editProfile ? (
           <div>
             <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>

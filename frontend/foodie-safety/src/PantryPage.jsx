@@ -9,6 +9,7 @@ import config from './config';
 const PantryPage = () => {
     const [pantryItems, setPantryItems] = useState([]);
     const [error, setError] = useState(null);
+    const [deleteError, setDeleteError] = useState(null);
     const { user, access_token, loading, authenticatedFetch } = useAuth();
     const navigate = useNavigate();
 
@@ -77,9 +78,11 @@ const PantryPage = () => {
                 prevItems.filter(item => item.code !== barcode)
             );
             
-            alert('Product deleted successfully!');
+            setDeleteError(null);
+            
         } catch (err) {
-            alert(`Error: ${err.message}`);
+            console.error('Failed to delete product:', err);
+            setDeleteError('Failed to delete product, please retry.');
         }
     };
 
@@ -94,6 +97,18 @@ const PantryPage = () => {
 
             <div className="container my-5">
                 <h3 className="text-center">Your Stored Food Goods</h3>
+
+                {deleteError && (
+                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Error!</strong> {deleteError}
+                        <button 
+                            type="button" 
+                            className="btn-close" 
+                            onClick={() => setDeleteError(null)}
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                )}
 
                 <div className="table-responsive">
                     <table className="table table-bordered table-striped mt-4">
