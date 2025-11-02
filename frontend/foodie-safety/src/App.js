@@ -10,6 +10,7 @@ import PantryPage from "./PantryPage";
 import SettingsPage from "./SettingPage";
 import History from "./History";
 import DeactivatePage from "./DeactivatePage";
+import ChatBotPage from "./ChatBotPage";
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/history" element={<History />} />
           <Route path="/deactivate-account" element={<DeactivatePage />} />
+          <Route path="/recipes" element={<ChatBotPage />} />
         </Routes>
       </Router>
     </AuthProvider>
