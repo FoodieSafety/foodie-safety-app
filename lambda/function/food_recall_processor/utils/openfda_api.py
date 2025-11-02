@@ -3,14 +3,9 @@ import re
 from typing import List, Dict, Optional
 from .config import OPENFDA_API_TEMPLATE
 from .logging_util import Logger
+from food_recall_processor.utils.lambda_utils import parse_upc
 
 
-def _parseUPC(description: str) -> set:
-    upc_pattern = r"UPC\s*#?\s*[A-Za-z]*\s*:?\s*([\d\s-]{10,})"
-    upc_matches = re.findall(upc_pattern, description)  # Find all UPC occurrences
-    
-    upc_codes = [re.sub(r"[\s-]+", "", upc_match) for upc_match in upc_matches]  # Remove spaces from UPCs
-    return set(upc_codes)  # Remove duplicates
 
 def _format_food_recalls(api_response) -> List[Dict]:
     """
@@ -52,7 +47,7 @@ def _format_food_recalls(api_response) -> List[Dict]:
                 # Grab the code info
                 'Code Info': event['code_info'],
                 # Grab UPCS
-                'UPCs': list(_parseUPC(event['product_description']) | _parseUPC(event['code_info'])),
+                'UPCs': list(parse_upc(event['product_description']) | parse_upc(event['code_info'])),
                 'Source': "OpenFDA"
             }
             # Append recall to all data
