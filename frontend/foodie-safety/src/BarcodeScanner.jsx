@@ -19,9 +19,9 @@ const BarcodeScanner = ({ onScan }) => {
   const scannerRef = useRef(null);
   const fileInputRef = useRef(null);
   const isInitializingRef = useRef(false);
-  const zxingReaderRef = useRef(null); // ZXing reader实例
+  const zxingReaderRef = useRef(null); // ZXing reader instance
 
-  // ============= QuaggaJS 相关函数 (封装) =============
+  // ============= QuaggaJS function=============
   const handleDetectedQuagga = useCallback((result) => {
     if (!result || !result.codeResult) return;
     
@@ -127,7 +127,7 @@ const BarcodeScanner = ({ onScan }) => {
     }
   }, [handleDetectedQuagga]);
 
-  // ============= ZXing 相关函数 (封装) =============
+  // ============= ZXing function=============
   const stopZXingScanner = useCallback(() => {
     try {
       if (zxingReaderRef.current) {
@@ -155,7 +155,7 @@ const BarcodeScanner = ({ onScan }) => {
       let hasScanned = false; // Prevent multiple scans
       
       await codeReader.decodeFromVideoDevice(
-        undefined, // 使用默认摄像头
+        undefined, // use default camera
         zxingVideoRef.current,
         (result, err) => {
           if (result && !hasScanned) {
@@ -311,7 +311,7 @@ const BarcodeScanner = ({ onScan }) => {
     );
   };
 
-  // ZXing 图片识别
+  // ZXing image recognition
   const processImageWithZXing = async (imageSrc) => {
     try {
       const codeReader = new BrowserMultiFormatReader();

@@ -9,7 +9,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 const DeactivatePage = () => {
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-  const { access_token, logout } = useAuth();
+  const { access_token, logout, authenticatedFetch } = useAuth();
   const navigate = useNavigate();
 
   const handleDeactivate = async () => {
@@ -20,11 +20,8 @@ const DeactivatePage = () => {
     setError('');
 
     try {
-      const response = await fetch(`${config.API_BASE_URL}/users`, {
+      const response = await authenticatedFetch(`${config.API_BASE_URL}/users`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
       });
 
       if (response.status === 204) {

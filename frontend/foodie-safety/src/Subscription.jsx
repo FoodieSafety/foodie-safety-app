@@ -8,7 +8,7 @@ import config from './config';
 
 const Subscription = () => {
   const navigate = useNavigate();
-  const { user, access_token, loading } = useAuth();
+  const { user, access_token, loading, authenticatedFetch } = useAuth();
 
   const [subscriptions, setSubscriptions] = useState([]);
   const [formData, setFormData] = useState({
@@ -41,10 +41,7 @@ const Subscription = () => {
 
   const fetchSubscriptions = useCallback(async () => {
     try {
-      const response = await fetch(`${config.API_BASE_URL}/subscriptions`, {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
+      const response = await authenticatedFetch(`${config.API_BASE_URL}/subscriptions`, {
       });
 
       if (!response.ok) {
@@ -56,7 +53,7 @@ const Subscription = () => {
     } catch (error) {
       console.error("Error fetching subscriptions:", error);
     }
-  }, [access_token]);
+  }, [authenticatedFetch]);
 
   useEffect(() => {
     if (!loading && access_token && user) {
@@ -82,11 +79,10 @@ const Subscription = () => {
     }
 
     try {
-      const response = await fetch(`${config.API_BASE_URL}/subscriptions`, {
+      const response = await authenticatedFetch(`${config.API_BASE_URL}/subscriptions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${access_token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -111,11 +107,10 @@ const Subscription = () => {
     if (!target) return;
 
     try {
-      const response = await fetch(`${config.API_BASE_URL}/subscriptions/${subscriptionId}`, {
+      const response = await authenticatedFetch(`${config.API_BASE_URL}/subscriptions/${subscriptionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${access_token}`,
         },
         body: JSON.stringify({ ...target, status: newStatus }),
       });
@@ -177,11 +172,10 @@ const Subscription = () => {
     }
 
     try {
-      const response = await fetch(`${config.API_BASE_URL}/subscriptions/${subscriptionId}`, {
+      const response = await authenticatedFetch(`${config.API_BASE_URL}/subscriptions/${subscriptionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${access_token}`,
         },
         body: JSON.stringify({ ...original, ...tempEditData, status: 'active' }),
       });

@@ -9,7 +9,7 @@ import config from './config';
 const PantryPage = () => {
     const [pantryItems, setPantryItems] = useState([]);
     const [error, setError] = useState(null);
-    const { user, access_token, loading } = useAuth();
+    const { user, access_token, loading, authenticatedFetch } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -21,11 +21,8 @@ const PantryPage = () => {
     useEffect(() => {
         const fetchPantryItems = async () => {
             try {
-                const response = await fetch(`${config.API_BASE_URL}/products`, {
+                const response = await authenticatedFetch(`${config.API_BASE_URL}/products`, {
                     method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${access_token}`,
-                    },
                 });
 
                 if (!response.ok) {
@@ -65,11 +62,8 @@ const PantryPage = () => {
             const formData = new FormData();
             formData.append('str_barcodes', barcode);
 
-            const response = await fetch(`${config.API_BASE_URL}/products`, {
+            const response = await authenticatedFetch(`${config.API_BASE_URL}/products`, {
                 method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${access_token}`,
-                },
                 body: formData,
             });
 

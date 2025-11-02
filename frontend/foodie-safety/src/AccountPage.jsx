@@ -8,7 +8,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const AccountPage = () => {
   const navigate = useNavigate();
-  const { user, loading, login, access_token } = useAuth();
+  const { user, loading, login, access_token, authenticatedFetch } = useAuth();
 
   const [editProfile, setEditProfile] = useState(false);
   const [formData, setFormData] = useState({
@@ -52,11 +52,10 @@ const AccountPage = () => {
     };
 
     try {
-      const response = await fetch(`${config.API_BASE_URL}/users`, {
+      const response = await authenticatedFetch(`${config.API_BASE_URL}/users`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${access_token}`,
         },
         body: JSON.stringify(updatedUser),
       });
