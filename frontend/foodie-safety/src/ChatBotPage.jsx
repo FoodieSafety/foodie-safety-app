@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useAuth } from './context/AuthContext';
 import config from './config';
+import { formatMarkdown } from './utils/formatMarkdown';
 
 const ChatBotPage = () => {
   const { user, access_token, loading } = useAuth();
@@ -69,7 +70,7 @@ To help me tailor the best suggestions, could you please share a few details?
       // Get the latest message from the LLM (by=0)
       const botMessages = data.msgs?.filter(msg => msg.by === 0) || [];
       const botText = botMessages.map(msg => msg.content).join('\n') || 'Sorry, I could not process that.';
-      
+
       setMessages(prev => [
         ...prev,
         { sender: 'bot', text: botText },
@@ -121,7 +122,9 @@ To help me tailor the best suggestions, could you please share a few details?
                   }`}
                 style={{ maxWidth: '70%', whiteSpace: 'pre-line' }}
               >
-                {msg.text}
+                <div
+                  dangerouslySetInnerHTML={{ __html: formatMarkdown(msg.text) }}
+                ></div>
               </div>
 
               {msg.sender === 'user' && (
