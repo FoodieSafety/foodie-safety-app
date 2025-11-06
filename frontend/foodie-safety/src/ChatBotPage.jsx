@@ -120,7 +120,7 @@ To help me tailor the best suggestions, could you please share a few details?
               <div
                 className={`p-3 rounded shadow-sm ${msg.sender === 'user' ? 'alert alert-info mb-3' : 'bg-white text-dark'
                   }`}
-                style={{ maxWidth: '70%', whiteSpace: 'pre-line' }}
+                style={{ maxWidth: '70%',  whiteSpace: 'normal' }}
               >
                 <div
                   dangerouslySetInnerHTML={{ __html: formatMarkdown(msg.text) }}
