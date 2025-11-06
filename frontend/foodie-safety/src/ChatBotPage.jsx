@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useAuth } from './context/AuthContext';
 import config from './config';
+import { formatMarkdown } from './utils/formatMarkdown';
 
 const ChatBotPage = () => {
   const { user, access_token, loading } = useAuth();
@@ -43,19 +44,17 @@ To help me tailor the best suggestions, could you please share a few details?
     setIsTyping(true);
 
     try {
-      // Request body according to backend spec
-      const requestBody = {
-        sessionID: sessionID || '', // empty if new chat
-        msg: input,
-      };
+      // Request body according to backend spec (Form data)
+      const formData = new FormData();
+      formData.append('session_id', sessionID || '');
+      formData.append('message', input);
 
-      const response = await fetch(`${config.API_BASE_URL}/chat/request/`, {
+      const response = await fetch(`${config.API_BASE_URL}/chat/message`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${access_token}`,
         },
-        body: JSON.stringify(requestBody),
+        body: formData,
       });
 
       if (!response.ok) throw new Error('Failed to get AI response.');
@@ -63,14 +62,18 @@ To help me tailor the best suggestions, could you please share a few details?
       const data = await response.json();
 
       // Saving session ID from response (if new)
-      if (data.sessionID && data.sessionID !== sessionID) {
-        setSessionID(data.sessionID);
+      if (data.session_id && data.session_id !== sessionID) {
+        setSessionID(data.session_id);
       }
 
-      // Adding bot reply
+      // Adding bot reply - backend returns msgs array with ChatMsg objects
+      // Get the latest message from the LLM (by=0)
+      const botMessages = data.msgs?.filter(msg => msg.by === 0) || [];
+      const botText = botMessages.map(msg => msg.content).join('\n') || 'Sorry, I could not process that.';
+
       setMessages(prev => [
         ...prev,
-        { sender: 'bot', text: data.response || 'Sorry, I could not process that.' },
+        { sender: 'bot', text: botText },
       ]);
 
     } catch (err) {
@@ -117,9 +120,11 @@ To help me tailor the best suggestions, could you please share a few details?
               <div
                 className={`p-3 rounded shadow-sm ${msg.sender === 'user' ? 'alert alert-info mb-3' : 'bg-white text-dark'
                   }`}
-                style={{ maxWidth: '70%', whiteSpace: 'pre-line' }}
+                style={{ maxWidth: '70%',  whiteSpace: 'normal' }}
               >
-                {msg.text}
+                <div
+                  dangerouslySetInnerHTML={{ __html: formatMarkdown(msg.text) }}
+                ></div>
               </div>
 
               {msg.sender === 'user' && (
