@@ -73,6 +73,7 @@ class SubscriptionResponse(SubscriptionCreate):
 class MsgBy(Enum):
     LLM=0
     USER=1
+    SYS_PROMPT=2
 
 # Object for individual message
 class ChatMsg(BaseModel):
