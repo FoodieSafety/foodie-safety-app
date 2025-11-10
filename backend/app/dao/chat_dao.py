@@ -54,3 +54,13 @@ class ChatDao:
         item["chats"].append(ChatSession(session_id=session_uuid, msgs=msgs).model_dump())
         ddb_util.ddb.Table(table_name).put_item(Item=item)
         return ChatResponse(session_id=session_uuid, msgs=msgs)
+
+    @staticmethod
+    def get_chat_sessions(self, user_id, ddb_util:DynamoUtil) -> List[ChatSession]:
+        table_name = os.getenv('DYNAMODB_CHAT_TABLE')
+        item = ddb_util.get_item(table_name, "user_id", user_id)
+        if not item:
+            return []
+        sessions = item.get('chats', [])
+
+        return sessions
