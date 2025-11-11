@@ -51,6 +51,18 @@ class DynamoUtil:
         matching_items = scan_response.get("Items", [])
         return matching_items
 
+
+    def scan_table_for_items(self, table_name: str):
+        """
+        Scans the table to return the list of items in that table without any filter criteria
+        :param table_name: Name of the table to write to.
+        :return: None
+        """
+        table = self.ddb.Table(table_name)
+        scan_response = table.scan()
+        matching_items = scan_response.get("Items", [])
+        return matching_items
+
     def get_item(self, table_name: str, key_attribute: str, key_value: str):
         table = self.ddb.Table(table_name)
         # Query using FilterExpression
