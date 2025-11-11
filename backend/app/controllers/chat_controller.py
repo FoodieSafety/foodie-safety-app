@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List
 
-from ..util.schemas import TokenData, ChatResponse, ChatMsg
+from ..util.schemas import TokenData, ChatResponse, ChatMsg, ChatSession
 from ..util.chat_api import get_gemini_response
 from ..util.dynamo_util import DynamoUtil
 from ..dao.chat_dao import ChatDao
@@ -19,3 +19,8 @@ class ChatController:
         chat_session = ChatDao.get_chat_session(user_id=user_id, session_id=session_id, ddb_util=ddb_util)
         gemini_response = get_gemini_response(context=chat_session.msgs)
         return ChatDao.enqueue_msgs(user_id=user_id, session_id=session_id, msgs=gemini_response, ddb_util=ddb_util)
+    
+    @staticmethod
+    def get_messages(session_id: str, db: Session, ddb_util: DynamoUtil, token_data: TokenData) -> ChatSession:
+        user_id = token_data.user_id
+        return ChatDao.get_chat_session(user_id=user_id, session_id=session_id, ddb_util=ddb_util)
