@@ -31,3 +31,6 @@ FRONTEND_URL = "http://localhost:3000"
 
 # Recall Table variables
 RECALL_DB_DISABLED = os.getenv("DISABLE_RECALL_DB", "false").lower() == "true"
+
+# Chat Session variables
+MAX_CHAT_SESSION_LENGTH = 10
