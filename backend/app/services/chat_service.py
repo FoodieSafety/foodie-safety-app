@@ -1,8 +1,6 @@
 import os
 from fastapi import APIRouter, status, Form, Depends
-from sqlalchemy.orm import Session
 from ..controllers.chat_controller import ChatController
-from ..util.database import get_db
 from ..util.oauth2 import get_current_user
 from ..util.dynamo_util import DynamoUtil, get_ddb_util
 from ..util.schemas import ChatResponse, ChatMsg, MsgBy, ChatSession
@@ -20,7 +18,6 @@ get_ddb_util().create_table(
 async def post_message(
         session_id: str = Form(...),
         message: str = Form(...),
-        db: Session = Depends(get_db),
         ddb_util: DynamoUtil = Depends(get_ddb_util),
         token_data = Depends(get_current_user)
 ):
@@ -28,27 +25,24 @@ async def post_message(
     Post a message
     :param session_id: session to post the message to
     :param message: text message to be sent
-    :param db: mysql session object
     :param ddb_util: dynamodb access for chat storage
     :param token_data: user token
     :return: AI response
     """
     messages = [ChatMsg(by=MsgBy.USER, content=message)]
-    return ChatController.post_messages(session_id=session_id, messages=messages, db=db, ddb_util=ddb_util, token_data=token_data)
+    return ChatController.post_messages(session_id=session_id, messages=messages, ddb_util=ddb_util, token_data=token_data)
 
 @router.get("/message", response_model=ChatSession)
 async def get_messages(
         session_id: str,
-        db: Session = Depends(get_db),
         ddb_util: DynamoUtil = Depends(get_ddb_util),
         token_data = Depends(get_current_user)
 ):
     """
     Get the message history
     :param session_id: session to get the message history from
-    :param db: mysql session object
     :param ddb_util: dynamodb access for chat storage
     :param token_data: user token
     :return: chat session
     """
-    return ChatController.get_messages(session_id=session_id, db=db, ddb_util=ddb_util, token_data=token_data)
+    return ChatController.get_messages(session_id=session_id, ddb_util=ddb_util, token_data=token_data)

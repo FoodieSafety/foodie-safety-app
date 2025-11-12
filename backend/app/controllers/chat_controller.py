@@ -1,4 +1,3 @@
-from sqlalchemy.orm import Session
 from typing import List
 
 from ..util.schemas import TokenData, ChatResponse, ChatMsg, ChatSession
@@ -13,7 +12,7 @@ class ChatController:
     and passing response from model to view
     """
     @staticmethod
-    def post_messages(session_id: str, messages: List[ChatMsg], db: Session, ddb_util: DynamoUtil, token_data: TokenData) -> ChatResponse:
+    def post_messages(session_id: str, messages: List[ChatMsg], ddb_util: DynamoUtil, token_data: TokenData) -> ChatResponse:
         user_id = token_data.user_id
         enforce_session_limit(user_id=user_id, session_id=session_id, ddb_util=ddb_util)
         enqueue_response = ChatDao.enqueue_msgs(user_id=user_id, session_id=session_id, msgs=messages, ddb_util=ddb_util)
@@ -23,6 +22,6 @@ class ChatController:
         return ChatDao.enqueue_msgs(user_id=user_id, session_id=session_id, msgs=gemini_response, ddb_util=ddb_util)
     
     @staticmethod
-    def get_messages(session_id: str, db: Session, ddb_util: DynamoUtil, token_data: TokenData) -> ChatSession:
+    def get_messages(session_id: str, ddb_util: DynamoUtil, token_data: TokenData) -> ChatSession:
         user_id = token_data.user_id
         return ChatDao.get_chat_session(user_id=user_id, session_id=session_id, ddb_util=ddb_util)
