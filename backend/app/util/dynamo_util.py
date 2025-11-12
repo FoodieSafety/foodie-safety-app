@@ -34,32 +34,24 @@ class DynamoUtil:
 
     def scan_table(self, table_name: str, key_attribute: str, key_value: str):
         """
-        Batch writing data into table
-        :param table_name: Name of the table to write to.
-        :param items: List of items to write to the table.
-        :param key_attribute: Key attribute to check for duplicates
-        :return: None
+        Scan the table and return the contents, with or without a key filter. (Check note below for without key filtering)
+        :param table_name: Name of the table to scan from.
+        :param key_attribute: Key attribute to be used for filtering
+        :param key_value: Key value to be used for filtering.
+        Note: If you want to return the entire table without filtering, send key_attribute and key_value as None
         """
         table = self.ddb.Table(table_name)
         # Query using FilterExpression
-        scan_response = table.scan(
-            FilterExpression=f"contains({key_attribute}, :key_value)",
-            ExpressionAttributeValues={":key_value": key_value}
-        )
+
+        if not key_attribute or not key_value:
+            scan_response = table.scan()
+        else:
+            scan_response = table.scan(
+                FilterExpression=f"contains({key_attribute}, :key_value)",
+                ExpressionAttributeValues={":key_value": key_value}
+            )
 
         # Print matching items
-        matching_items = scan_response.get("Items", [])
-        return matching_items
-
-
-    def scan_table_for_items(self, table_name: str):
-        """
-        Scans the table to return the list of items in that table without any filter criteria
-        :param table_name: Name of the table to write to.
-        :return: None
-        """
-        table = self.ddb.Table(table_name)
-        scan_response = table.scan()
         matching_items = scan_response.get("Items", [])
         return matching_items
 

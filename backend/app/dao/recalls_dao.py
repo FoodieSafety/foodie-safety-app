@@ -5,10 +5,11 @@ from botocore.exceptions import ClientError
 from app.util.dynamo_util import DynamoUtil
 
 
-class RecallDao:
+class RecallsDao:
     @staticmethod
     def get_recalls(ddb_util:DynamoUtil):
         try:
-            return ddb_util.scan_table_for_items(os.getenv("DYNAMODB_RECALL_TABLE"))
+            # Sending None as params because not filtering based on condition.
+            return ddb_util.scan_table(os.getenv("DYNAMODB_RECALL_TABLE"), None, None)
         except ClientError as e:
             return []
