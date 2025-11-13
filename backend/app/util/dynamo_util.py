@@ -85,7 +85,6 @@ class DynamoUtil:
         try:
             existing_tables = [table.name for table in self.ddb.tables.all()]
             if table_name in existing_tables:
-                print( f"Table '{table_name}' already exists.")
                 return
 
             # Define table creation parameters
@@ -107,7 +106,6 @@ class DynamoUtil:
 
             # Wait until the table is created
             table.wait_until_exists()
-            print(f"Table '{table_name}' created successfully.")
 
         except ClientError as e:
             print("error", f"Failed to create table {table_name}: {e}")
