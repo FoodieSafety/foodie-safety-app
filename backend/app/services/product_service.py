@@ -3,7 +3,6 @@ from fastapi import APIRouter, status, Form, Depends, Request
 from sqlalchemy.orm import Session
 from typing import List, Tuple
 
-from ..dao.chat_dao import ChatDao
 from ..util.schemas import ProductInfo, Barcode, ProductError, UserChats, ChatMsg, MsgBy
 from ..controllers.product_controller import ProductController
 from ..util.database import get_db
