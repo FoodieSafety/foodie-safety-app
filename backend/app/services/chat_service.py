@@ -48,15 +48,15 @@ async def get_messages(
     """
     return ChatController.get_messages(session_id=session_id, ddb_util=ddb_util, token_data=token_data)
 
-@router.get("/sessions", response_model=List[ChatSession])
+@router.get("/sessions", response_model=List[str])
 async def get_chat_sessions(
         ddb_util: DynamoUtil = Depends(get_ddb_util),
         token_data = Depends(get_current_user)
 ):
     """
-    Get all chat sessions for the user
+    Get all chat session IDs for the user.
     :param ddb_util: dynamodb access for chat storage
     :param token_data: user token
-    :return: list of chat sessions
+    :return: list of session_ids (strings)
     """
     return ChatController.get_chat_sessions(ddb_util=ddb_util, token_data=token_data)
