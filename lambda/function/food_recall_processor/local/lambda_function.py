@@ -56,11 +56,10 @@ def lambda_handler(event, context):
     # Create Lambda logs table
     create_table_helper(ddb_util,
                         lambda_logs_table,
-                        # StatusCode is used as a partition key and LogTimestamp as a sort key.
-                        # So that it is easy to fetch it based on timestamp sort order based on a specific status code.
-                        key_schema = [{"AttributeName": "StatusCode", "KeyType": "HASH"},
+                        # Using a global partition key for easy sorting.
+                        key_schema = [{"AttributeName": "PK", "KeyType": "HASH"},
                                       {"AttributeName": "LogTimestamp", "KeyType": "SORT"}],
-                        attribute_definitions = [{"AttributeName": "StatusCode", "AttributeType": "N"},
+                        attribute_definitions = [{"AttributeName": "PK", "AttributeType": "N"},
                                                  {"AttributeName": "LogTimestamp", "AttributeType": "N"}]
                         )
 
@@ -71,6 +70,7 @@ def lambda_handler(event, context):
     if recalls:
         processor.store_recall_data(recalls_table_name, recalls)
         ddb_util.insert_to_table(table_name= lambda_logs_table,items = [{
+            "PK": "GPK",
             "StatusCode": 200,
             "LogTimestamp": Decimal(time.time() * 1000),
             "InvocationId": invocation_id
@@ -81,6 +81,7 @@ def lambda_handler(event, context):
         }
     else:
         ddb_util.insert_to_table(table_name= lambda_logs_table,items = [{
+            "PK": "GPK",
             "StatusCode": 204,
             "LogTimestamp": Decimal(time.time() * 1000),
             "InvocationId": invocation_id
