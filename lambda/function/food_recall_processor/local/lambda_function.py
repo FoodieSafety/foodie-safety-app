@@ -1,4 +1,8 @@
 import sys
+import time
+import uuid
+from decimal import Decimal
+
 sys.path.append("/opt/python")  # Ensures Lambda layer dependencies are accessible
 import os
 from food_recall_processor.utils.logging_util import Logger
@@ -6,15 +10,15 @@ from food_recall_processor.utils.dynamo_util import DynamoUtil
 from food_recall_processor.src.recall_processor import RecallProcessor
 
 
-def create_table_helper(database: DynamoUtil, table_name: str) -> None:
+def create_table_helper(database: DynamoUtil, table_name: str, key_schema:list, attribute_definitions:list) -> None:
     """
     Check if table exists, if not, create one
     :param database: database instance of DynamoUtil
     :param table_name: name of table
+    :param key_schema: list of key attributes
+    :param attribute_definitions: list of attribute definitions of the table
     :return: None
     """
-    attribute_definitions = [{"AttributeName": "RecallID", "AttributeType": "S"}]
-    key_schema = [{"AttributeName": "RecallID", "KeyType": "HASH"}]
     database.create_table(
         table_name,
         attribute_definitions,
@@ -29,7 +33,8 @@ def lambda_handler(event, context):
     :param context: triggered context (None)
     :return: response in JSON format
     """
-    table_name = os.getenv("DYNAMODB_TABLE")
+    recalls_table_name = os.getenv("DYNAMODB_TABLE")
+    lambda_logs_table = os.getenv("LAMBDA_LOGS_TABLE")
     is_local = os.getenv("AWS_SAM_LOCAL") == "true"
 
     # Create db endpoint
@@ -41,18 +46,45 @@ def lambda_handler(event, context):
     logger = Logger(name="recall_processor", to_file=False)
     processor = RecallProcessor(ddb_util, logger, delta_days=delta)
 
-    # Create table
-    create_table_helper(ddb_util, table_name)
+    # Create Recalls table
+    create_table_helper(ddb_util,
+                        recalls_table_name,
+                        key_schema = [{"AttributeName": "RecallID", "KeyType": "HASH"}],
+                        attribute_definitions = [{"AttributeName": "RecallID", "AttributeType": "S"}]
+                        )
 
+    # Create Lambda logs table
+    create_table_helper(ddb_util,
+                        lambda_logs_table,
+                        # StatusCode is used as a partition key and LogTimestamp as a sort key.
+                        # So that it is easy to fetch it based on timestamp sort order based on a specific status code.
+                        key_schema = [{"AttributeName": "StatusCode", "KeyType": "HASH"},
+                                      {"AttributeName": "LogTimestamp", "KeyType": "SORT"}],
+                        attribute_definitions = [{"AttributeName": "StatusCode", "AttributeType": "N"},
+                                                 {"AttributeName": "LogTimestamp", "AttributeType": "N"}]
+                        )
+
+    # Generate a unique id for this lambda invocation
+    invocation_id = str(uuid.uuid4())
     # Get recalls
     recalls = processor.get_recall_data()
     if recalls:
-        processor.store_recall_data(table_name, recalls)
+        processor.store_recall_data(recalls_table_name, recalls)
+        ddb_util.insert_to_table(table_name= lambda_logs_table,items = [{
+            "StatusCode": 200,
+            "LogTimestamp": Decimal(time.time() * 1000),
+            "InvocationId": invocation_id
+        }], key_attribute="InvocationId")
         return {
             "statusCode": 200,
             "body": f"Stored {len(recalls)} recalls successfully.",
         }
     else:
+        ddb_util.insert_to_table(table_name= lambda_logs_table,items = [{
+            "StatusCode": 204,
+            "LogTimestamp": Decimal(time.time() * 1000),
+            "InvocationId": invocation_id
+        }], key_attribute="InvocationId")
         return {
             "statusCode": 204,
             "body": f"No recall data found.",

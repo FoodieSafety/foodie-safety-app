@@ -29,6 +29,7 @@ Resources:
       Environment:
         Variables:
           DYNAMODB_TABLE: "RecallsTable"         # Environment variable for DynamoDB table
+          LAMBDA_LOGS_TABLE: "LambdaLogsTable"
           LOG_LEVEL: "DEBUG"
           PYTHONPATH: "/var/task"                # Include path
           AWS_SAM_LOCAL: "true"                 # "true" if test with local DynamoDB
