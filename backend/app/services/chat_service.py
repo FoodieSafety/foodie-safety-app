@@ -1,5 +1,6 @@
 import os
 from fastapi import APIRouter, status, Form, Depends
+from typing import List
 from ..controllers.chat_controller import ChatController
 from ..util.oauth2 import get_current_user
 from ..util.dynamo_util import DynamoUtil, get_ddb_util
@@ -46,3 +47,16 @@ async def get_messages(
     :return: chat session
     """
     return ChatController.get_messages(session_id=session_id, ddb_util=ddb_util, token_data=token_data)
+
+@router.get("/sessions", response_model=List[ChatSession])
+async def get_chat_sessions(
+        ddb_util: DynamoUtil = Depends(get_ddb_util),
+        token_data = Depends(get_current_user)
+):
+    """
+    Get all chat sessions for the user
+    :param ddb_util: dynamodb access for chat storage
+    :param token_data: user token
+    :return: list of chat sessions
+    """
+    return ChatController.get_chat_sessions(ddb_util=ddb_util, token_data=token_data)
