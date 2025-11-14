@@ -1,7 +1,4 @@
 import sys
-import time
-import uuid
-from decimal import Decimal
 
 sys.path.append("/opt/python")  # Ensures Lambda layer dependencies are accessible
 import os
@@ -26,6 +23,24 @@ def create_table_helper(database: DynamoUtil, table_name: str, key_schema:list, 
     "PAY_PER_REQUEST"
     )
 
+def init_tables(ddb_util):
+    # Create Recalls table
+    create_table_helper(ddb_util,
+                        os.getenv("DYNAMODB_TABLE"),
+                        key_schema = [{"AttributeName": "RecallID", "KeyType": "HASH"}],
+                        attribute_definitions = [{"AttributeName": "RecallID", "AttributeType": "S"}]
+                        )
+
+    # Create Lambda logs table
+    create_table_helper(ddb_util,
+                        os.getenv("LAMBDA_LOGS_TABLE"),
+                        # Using a global partition key for easy sorting.
+                        key_schema = [{"AttributeName": "PK", "KeyType": "HASH"},
+                                      {"AttributeName": "LogTimestamp", "KeyType": "SORT"}],
+                        attribute_definitions = [{"AttributeName": "PK", "AttributeType": "S"},
+                                                 {"AttributeName": "LogTimestamp", "AttributeType": "N"}]
+                        )
+
 def lambda_handler(event, context):
     """
     AWS Lambda handler to fetch, format and store food recall data
@@ -46,25 +61,9 @@ def lambda_handler(event, context):
     logger = Logger(name="recall_processor", to_file=False)
     processor = RecallProcessor(ddb_util, logger, delta_days=delta)
 
-    # Create Recalls table
-    create_table_helper(ddb_util,
-                        recalls_table_name,
-                        key_schema = [{"AttributeName": "RecallID", "KeyType": "HASH"}],
-                        attribute_definitions = [{"AttributeName": "RecallID", "AttributeType": "S"}]
-                        )
+    # Method to initialize both recalls and the lambda logs table
+    init_tables(ddb_util)
 
-    # Create Lambda logs table
-    create_table_helper(ddb_util,
-                        lambda_logs_table,
-                        # Using a global partition key for easy sorting.
-                        key_schema = [{"AttributeName": "PK", "KeyType": "HASH"},
-                                      {"AttributeName": "LogTimestamp", "KeyType": "SORT"}],
-                        attribute_definitions = [{"AttributeName": "PK", "AttributeType": "S"},
-                                                 {"AttributeName": "LogTimestamp", "AttributeType": "N"}]
-                        )
-
-    # Generate a unique id for this lambda invocation
-    invocation_id = str(uuid.uuid4())
     # Get recalls
     recalls = processor.get_recall_data()
     if recalls:
