@@ -1,4 +1,7 @@
+import time
+import uuid
 from datetime import datetime, timedelta
+from decimal import Decimal
 from typing import List, Dict
 import hashlib
 from botocore.exceptions import ClientError
@@ -81,3 +84,13 @@ class RecallProcessor:
         except Exception as e:
             self.logger.log("error", f"Error storing recall data: {e}")
             raise
+
+    def store_log(self, table_name:str, status_code):
+
+        self.database.insert_to_table(table_name= table_name,items = [{
+            "PK": "GPK", # Single uniform partition key
+            "StatusCode": status_code,
+            "LogTimestamp": Decimal(time.time() * 1000), # GPK coupled with timestamp act as a composite key
+            "InvocationId": str(uuid.uuid4())
+        }], key_attribute="InvocationId")
+        return

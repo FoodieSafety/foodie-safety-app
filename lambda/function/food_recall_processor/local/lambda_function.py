@@ -38,7 +38,7 @@ def lambda_handler(event, context):
     is_local = os.getenv("AWS_SAM_LOCAL") == "true"
 
     # Create db endpoint
-    ddb_endpoint = "http://host.docker.internal:6500" if is_local else None
+    ddb_endpoint = "http://host.docker.internal:7000" if is_local else None
     delta = 30 if is_local else 7 # set testing delta as 30
 
     # Create related instance
@@ -69,23 +69,14 @@ def lambda_handler(event, context):
     recalls = processor.get_recall_data()
     if recalls:
         processor.store_recall_data(recalls_table_name, recalls)
-        ddb_util.insert_to_table(table_name= lambda_logs_table,items = [{
-            "PK": "GPK",
-            "StatusCode": 200,
-            "LogTimestamp": Decimal(time.time() * 1000),
-            "InvocationId": invocation_id
-        }], key_attribute="InvocationId")
+        processor.store_log(lambda_logs_table, 200)
         return {
             "statusCode": 200,
             "body": f"Stored {len(recalls)} recalls successfully.",
         }
     else:
-        ddb_util.insert_to_table(table_name= lambda_logs_table,items = [{
-            "PK": "GPK",
-            "StatusCode": 204,
-            "LogTimestamp": Decimal(time.time() * 1000),
-            "InvocationId": invocation_id
-        }], key_attribute="InvocationId")
+        processor.store_recall_data(recalls_table_name, recalls)
+        processor.store_log(lambda_logs_table, 204)
         return {
             "statusCode": 204,
             "body": f"No recall data found.",
