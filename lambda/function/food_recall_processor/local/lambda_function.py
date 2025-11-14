@@ -74,7 +74,6 @@ def lambda_handler(event, context):
             "body": f"Stored {len(recalls)} recalls successfully.",
         }
     else:
-        processor.store_recall_data(recalls_table_name, recalls)
         processor.store_log(lambda_logs_table, 204)
         return {
             "statusCode": 204,
