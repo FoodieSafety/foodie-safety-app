@@ -69,11 +69,22 @@ class ChatDao:
         return ChatResponse(session_id=session_uuid, msgs=msgs)
 
     @staticmethod
-    def get_chat_sessions(self, user_id, ddb_util:DynamoUtil) -> List[ChatSession]:
-        table_name = os.getenv('DYNAMODB_CHAT_TABLE')
+    def get_chat_sessions(user_id, ddb_util: DynamoUtil) -> List[str]:
+        """
+        Return a list of session_ids for the given user.
+        """
+        table_name = os.getenv("DYNAMODB_CHAT_TABLE")
         item = ddb_util.get_item(table_name, "user_id", user_id)
-        if not item:
-            return []
-        sessions = item.get('chats', [])
 
-        return sessions
+        if not item:
+            # No record for this user yet -> no sessions
+            return []
+
+        sessions = item.get("chats", [])
+
+        # Return only the session_id from each stored session
+        return [
+            session.get("session_id")
+            for session in sessions
+            if isinstance(session, dict) and "session_id" in session
+        ]

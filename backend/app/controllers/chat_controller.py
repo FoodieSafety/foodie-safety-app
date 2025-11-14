@@ -25,3 +25,11 @@ class ChatController:
     def get_messages(session_id: str, ddb_util: DynamoUtil, token_data: TokenData) -> ChatSession:
         user_id = token_data.user_id
         return ChatDao.get_chat_session(user_id=user_id, session_id=session_id, ddb_util=ddb_util)
+    
+    @staticmethod
+    def get_chat_sessions(ddb_util: DynamoUtil, token_data: TokenData) -> List[str]:
+        """
+        Return a list of session_ids for the current user.
+        """
+        user_id = token_data.user_id
+        return ChatDao.get_chat_sessions(user_id=user_id, ddb_util=ddb_util)
