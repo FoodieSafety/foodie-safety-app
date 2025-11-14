@@ -38,7 +38,7 @@ def lambda_handler(event, context):
     is_local = os.getenv("AWS_SAM_LOCAL") == "true"
 
     # Create db endpoint
-    ddb_endpoint = "http://host.docker.internal:7000" if is_local else None
+    ddb_endpoint = "http://host.docker.internal:6500" if is_local else None
     delta = 30 if is_local else 7 # set testing delta as 30
 
     # Create related instance
@@ -59,7 +59,7 @@ def lambda_handler(event, context):
                         # Using a global partition key for easy sorting.
                         key_schema = [{"AttributeName": "PK", "KeyType": "HASH"},
                                       {"AttributeName": "LogTimestamp", "KeyType": "SORT"}],
-                        attribute_definitions = [{"AttributeName": "PK", "AttributeType": "N"},
+                        attribute_definitions = [{"AttributeName": "PK", "AttributeType": "S"},
                                                  {"AttributeName": "LogTimestamp", "AttributeType": "N"}]
                         )
 
