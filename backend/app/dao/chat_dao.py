@@ -24,7 +24,9 @@ class ChatDao:
         sessions = item.get('chats', [])
         for session in sessions:
             if session.get('session_id') == session_id:
-                return ChatSession(**session)  # Found the session
+                sesh = ChatSession(**session)  # Found the session
+                sesh.msgs.pop(0)
+                return sesh
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User with id {user_id} has no chat session with id {session_id}"
