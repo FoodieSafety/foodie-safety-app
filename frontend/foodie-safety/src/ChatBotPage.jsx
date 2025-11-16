@@ -7,7 +7,7 @@ import config from './config';
 import { formatMarkdown } from './utils/formatMarkdown';
 
 const ChatBotPage = () => {
-  const { user, access_token, loading } = useAuth();
+  const { user, access_token, loading, authenticatedFetch } = useAuth();
 
   // Messages for the current session
   const [messages, setMessages] = useState([]);
@@ -21,6 +21,44 @@ const ChatBotPage = () => {
 
   const chatEndRef = useRef(null);
 
+  // Load user's chat session list
+  useEffect(() => {
+    const loadChatSessions = async () => {
+      if (!access_token || loading) return;
+
+      try {
+        const apiUrl = `${config.API_BASE_URL}/chat/sessions`;
+
+        const response = await authenticatedFetch(apiUrl, {
+          method: "GET",
+        });
+
+        if (response.ok) {
+          const sessionIds = await response.json();
+          
+          // Convert session IDs to session objects
+          const loadedSessions = sessionIds.map((id, index) => ({
+            id: id,
+            title: `Chat ${index + 1}`,
+          }));
+          
+          setSessions(loadedSessions);
+          
+          // If no sessions exist, auto-start a new session
+          if (loadedSessions.length === 0) {
+            startNewSession();
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load chat sessions:', err);
+        // Start new session even if loading fails
+        startNewSession();
+      }
+    };
+
+    loadChatSessions();
+  }, [access_token, loading, authenticatedFetch]);
+
   // Auto-scroll
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -28,25 +66,20 @@ const ChatBotPage = () => {
 
   // Start a new chat session
   const startNewSession = () => {
-    const newSession = {
-      id: Date.now().toString(),
-      title: `Chat ${sessions.length + 1}`,
-    };
-
-    setSessions(prev => [...prev, newSession]);
-    setSessionID(newSession.id);
-
+    // Don't pre-generate session_id, let backend create and return new UUID
+    setSessionID('');  // Empty string means new session
+    
     // Default greeting message for new chat
     setMessages([
       {
         sender: "bot",
-        text: `👋 Hello! I’m Foodie Safety AI. 
+        text: `👋 Hello! I'm Foodie Safety AI. 
 
-Let’s get started on finding the perfect recipe for you. 🍽️
+Let's get started on finding the perfect recipe for you. 🍽️
 
 To help me tailor the best suggestions, could you please share a few details?
 
-• Meal type you’re in the mood for (e.g., breakfast, Mexican, spicy)  
+• Meal type you're in the mood for (e.g., breakfast, Mexican, spicy)  
 • Ingredients to avoid (any allergies or dietary preferences)  
 • Time you have available to cook  
 • Cooking tools you have on hand (e.g., oven, air fryer, blender)`
@@ -55,20 +88,54 @@ To help me tailor the best suggestions, could you please share a few details?
   };
 
   // Switch chat sessions
-  const switchSession = (id) => {
+  const switchSession = async (id) => {
     setSessionID(id);
-    setMessages([
-      {
-        sender: "bot",
-        text: `Welcome back to ${id}!`
+    setMessages([]);
+    setIsTyping(true);
+
+    try {
+      const apiUrl = `${config.API_BASE_URL}/chat/message?session_id=${id}`;
+
+      const response = await authenticatedFetch(apiUrl, {
+        method: "GET",
+      });
+
+      if (response.ok) {
+        const chatSession = await response.json();
+
+        // Convert message format: by=0 is bot, by=1 is user
+        const loadedMessages = chatSession.msgs?.map(msg => ({
+          sender: msg.by === 0 ? "bot" : "user",
+          text: msg.content
+        })) || [];
+
+        setMessages(loadedMessages);
+      } else {
+        // If loading fails, show default message
+        setMessages([
+          {
+            sender: "bot",
+            text: `Welcome back to session ${id}!`
+          }
+        ]);
       }
-    ]);
+    } catch (err) {
+      console.error('Failed to load session messages:', err);
+      setMessages([
+        {
+          sender: "bot",
+          text: `⚠️ Unable to load session history: ${err.message}`
+        }
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   // Send chat message
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim() || !sessionID) return;
+    if (!input.trim()) return;  // Only check if input is empty, sessionID can be empty (new session)
 
     const newMessage = { sender: "user", text: input };
     setMessages(prev => [...prev, newMessage]);
@@ -79,23 +146,35 @@ To help me tailor the best suggestions, could you please share a few details?
       // FormData required by backend
       const formData = new FormData();
       formData.append("session_id", sessionID || "");
-      formData.append("message", input);
+      formData.append("message", newMessage.text);
 
-      const response = await fetch(`${config.API_BASE_URL}/chat/message`, {
+      const apiUrl = `${config.API_BASE_URL}/chat/message`;
+
+      const response = await authenticatedFetch(apiUrl, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
         body: formData,
       });
 
-      if (!response.ok) throw new Error("Failed to get AI response.");
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', response.status, errorText);
+        throw new Error(`API request failed (${response.status}): ${errorText}`);
+      }
 
       const data = await response.json();
 
       // Update sessionID if backend created a new one
       if (data.session_id && data.session_id !== sessionID) {
-        setSessionID(data.session_id);
+        const newSessionId = data.session_id;
+        setSessionID(newSessionId);
+        
+        // If new session, add to session list
+        if (!sessionID) {
+          setSessions(prev => [...prev, {
+            id: newSessionId,
+            title: `Chat ${prev.length + 1}`
+          }]);
+        }
       }
 
       // Extract bot messages (by=0)
@@ -106,6 +185,7 @@ To help me tailor the best suggestions, could you please share a few details?
       setMessages(prev => [...prev, { sender: "bot", text: botText }]);
 
     } catch (err) {
+      console.error('Chat error:', err);
       setMessages(prev => [
         ...prev,
         { sender: "bot", text: `⚠️ Error: ${err.message}` }
@@ -209,12 +289,11 @@ To help me tailor the best suggestions, could you please share a few details?
               <input
                 type="text"
                 className="form-control me-2"
-                placeholder={sessionID ? "Type a response to generate an AI recipe..." : "Start a new chat first"}
+                placeholder="Type your message to get AI recipe suggestions..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                disabled={!sessionID}
               />
-              <button type="submit" className="btn btn-secondary" disabled={!sessionID}>
+              <button type="submit" className="btn btn-secondary">
                 Send
               </button>
             </form>
