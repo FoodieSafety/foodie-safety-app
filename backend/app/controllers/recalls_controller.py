@@ -1,8 +1,8 @@
-from typing import List, Dict, Optional
+from typing import Optional
 
 from ..dao.recalls_dao import RecallsDao
 from ..util.dynamo_util import DynamoUtil
-from ..util.schemas import RecallTimestamp
+from ..util.schemas import RecallTimestamp, RecallsResponse
 
 
 class RecallsController:
@@ -11,22 +11,17 @@ class RecallsController:
     """
 
     @staticmethod
-    def get_recalls_with_latest_timestamp(ddb_util: DynamoUtil) -> Dict:
+    def get_recalls(ddb_util: DynamoUtil) -> RecallsResponse:
         """
         Retrieve all recalls along with the latest RecallProcessor timestamp.
-
         """
         recalls = RecallsDao.get_recalls(ddb_util) or []
 
-       
-        timestamp_record: Optional[RecallTimestamp] = RecallsDao.get_update_time(ddb_util)
+        timestamp_record: RecallTimestamp = RecallsDao.get_update_time(ddb_util)
+        latest_timestamp_iso: Optional[str] = timestamp_record.time_iso
 
-        latest_timestamp_iso: Optional[str] = None
-        if timestamp_record:
-            latest_timestamp_iso = timestamp_record.time_iso
-
-        return {
-            "recalls": recalls,
-            "latest_timestamp": latest_timestamp_iso,
-            "total_count": len(recalls),
-        }
+        return RecallsResponse(
+            recalls=recalls,
+            latest_timestamp=latest_timestamp_iso,
+            total_count=len(recalls),
+        )

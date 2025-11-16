@@ -108,7 +108,7 @@ class RecallTimestamp(BaseModel):
             return datetime.fromtimestamp(ms / 1000).isoformat()
         return v
 
-class RecallsWithTimestampResponse(BaseModel):
+class RecallsResponse(BaseModel):
     """
     Response schema for recalls plus latest update timestamp.
     """
