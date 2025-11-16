@@ -61,6 +61,31 @@ class DynamoUtil:
         item = scan_response.get('Item')
         return item
 
+    def scan_all_items(self, table_name: str) -> List[Dict]:
+        """
+        Scan all items from a DynamoDB table
+        :param table_name: Name of the table to scan
+        :return: List of all items in the table
+        """
+        try:
+            table = self.ddb.Table(table_name)
+            all_items = []
+            
+            # DynamoDB scan has a 1MB limit per request, so we need to paginate
+            response = table.scan()
+            all_items.extend(response.get('Items', []))
+            
+            # Handle pagination if there are more items
+            while 'LastEvaluatedKey' in response:
+                response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+                all_items.extend(response.get('Items', []))
+            
+            return all_items
+        except Exception as e:
+            print(f"Error scanning table '{table_name}': {e}")
+            # Return empty list if DynamoDB is not available
+            return []
+
     def create_table(
             self,
             table_name: str,
@@ -79,9 +104,10 @@ class DynamoUtil:
         :return: None
         """
         try:
+            # Try to list tables to check if DynamoDB is available
             existing_tables = [table.name for table in self.ddb.tables.all()]
             if table_name in existing_tables:
-                print( f"Table '{table_name}' already exists.")
+                print(f"Table '{table_name}' already exists.")
                 return
 
             # Define table creation parameters
@@ -105,6 +131,8 @@ class DynamoUtil:
             table.wait_until_exists()
             print(f"Table '{table_name}' created successfully.")
 
-        except ClientError as e:
-            print("error", f"Failed to create table {table_name}: {e}")
-            raise
+        except (ClientError, Exception) as e:
+            # Don't raise - just log the error and continue
+            # This allows the app to start even if DynamoDB is not available
+            print(f"Warning: Could not create table '{table_name}': {e}")
+            print("The application will continue, but DynamoDB features may not work.")

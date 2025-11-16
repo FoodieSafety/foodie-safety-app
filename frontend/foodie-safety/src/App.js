@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import HomePage from "./Homepage";
 import LoginForm from "./LoginForm";
 import AccountPage from "./AccountPage";
+import RecallsPage from "./RecallsPage";
 import Subscription from "./Subscription";
 import ScanProduct from "./ScanProduct";
 import PantryPage from "./PantryPage";
@@ -24,6 +25,7 @@ const App = () => {
           <Route path="/subscriptions" element={<Subscription />} />
           <Route path="/scan" element={<ScanProduct />} />
           <Route path="/my-products" element={<PantryPage />} />
+          <Route path="/recalls" element={<RecallsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/history" element={<History />} />
           <Route path="/deactivate-account" element={<DeactivatePage />} />

@@ -197,3 +197,5 @@ aws dynamodb delete-table --table-name RecallsTable --endpoint-url http://localh
 ```
 docker stop <Container ID>
 ```
+
+### Recall Table

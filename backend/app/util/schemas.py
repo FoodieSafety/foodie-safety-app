@@ -93,3 +93,17 @@ class ChatResponse(BaseModel):
     session_id: str
     msgs: List[ChatMsg]
 
+# Recall Information Schema
+class RecallInfo(BaseModel):
+    recall_id: str
+    recalling_firm: Optional[str] = None
+    product_description: Optional[str] = None
+    reason_for_recall: Optional[str] = None
+    report_date: Optional[str] = None
+    classification: Optional[str] = None
+    distribution: Optional[str] = None
+    product_quantity: Optional[str] = None
+    code_info: Optional[str] = None
+    upcs: List[str] = []
+    source: Optional[str] = None
+
