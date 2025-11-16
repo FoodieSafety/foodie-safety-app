@@ -107,3 +107,14 @@ class RecallTimestamp(BaseModel):
         if ms is not None:
             return datetime.fromtimestamp(ms / 1000).isoformat()
         return v
+
+class RecallsResponse(BaseModel):
+    """
+    Response schema for recalls plus latest update timestamp.
+    """
+    recalls: List[dict]
+    latest_timestamp: Optional[str] = None
+    total_count: int
+
+    class Config:
+        from_attributes = True
