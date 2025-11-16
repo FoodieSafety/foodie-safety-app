@@ -2,6 +2,7 @@ import os
 
 import boto3
 from boto3 import dynamodb
+from boto3.dynamodb.conditions import Attr
 from botocore.exceptions import ClientError
 from typing import Optional, List, Dict
 
@@ -32,21 +33,30 @@ class DynamoUtil:
             aws_secret_access_key=secret_key,
         )
 
-    def scan_table(self, table_name: str, key_attribute: str, key_value: str):
+    def scan_table(self, table_name: str, filter_method: str, key_attribute: str, key_value):
         """
-        Batch writing data into table
-        :param table_name: Name of the table to write to.
-        :param items: List of items to write to the table.
-        :param key_attribute: Key attribute to check for duplicates
-        :return: None
+        Scan the table and return the contents, with or without a key filter. (Check note below for without key filtering)
+        :param table_name: Name of the table to scan from.
+        :param filter_method: Method of comparison to perform for filtering (None, "eq", "contains")
+        :param key_attribute: Key attribute to be used for filtering
+        :param key_value: Key value to be used for filtering.
+        Note: If you want to return the entire table without filtering, send key_attribute and key_value as None
         """
         table = self.ddb.Table(table_name)
-        # Query using FilterExpression
-        scan_response = table.scan(
-            FilterExpression=f"contains({key_attribute}, :key_value)",
-            ExpressionAttributeValues={":key_value": key_value}
-        )
 
+        if not filter_method:
+            filter_expression = None
+        elif filter_method == "eq":
+            filter_expression = Attr(key_attribute).eq(key_value)
+        elif filter_method == "contains":
+            filter_expression = Attr(key_attribute).contains(key_value)
+        else:
+            raise ValueError("Invalid comparison operation used for dynamodb table scanning")
+        
+        scan_response = table.scan(
+            FilterExpression=filter_expression
+        )
+        
         # Print matching items
         matching_items = scan_response.get("Items", [])
         return matching_items
@@ -81,7 +91,6 @@ class DynamoUtil:
         try:
             existing_tables = [table.name for table in self.ddb.tables.all()]
             if table_name in existing_tables:
-                print( f"Table '{table_name}' already exists.")
                 return
 
             # Define table creation parameters
@@ -103,7 +112,6 @@ class DynamoUtil:
 
             # Wait until the table is created
             table.wait_until_exists()
-            print(f"Table '{table_name}' created successfully.")
 
         except ClientError as e:
             print("error", f"Failed to create table {table_name}: {e}")

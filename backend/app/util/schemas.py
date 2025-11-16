@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, validator, Field
 from datetime import datetime
 from typing import Optional, List
 from fastapi import UploadFile
@@ -73,6 +73,7 @@ class SubscriptionResponse(SubscriptionCreate):
 class MsgBy(Enum):
     LLM=0
     USER=1
+    SYS_PROMPT=2
 
 # Object for individual message
 class ChatMsg(BaseModel):
@@ -93,3 +94,27 @@ class ChatResponse(BaseModel):
     session_id: str
     msgs: List[ChatMsg]
 
+# Recall Update Timestamp:
+class RecallTimestamp(BaseModel):
+    invocation_id: str = Field(alias="InvocationId")
+    status_code: int = Field(alias="StatusCode")
+    time_ms: float = Field(alias="LogTimestamp")
+    time_iso: Optional[str] = None
+
+    @validator("time_iso", pre=True, always=True)
+    def convert_ms_to_iso(cls, v, values):
+        ms = values.get("time_ms")
+        if ms is not None:
+            return datetime.fromtimestamp(ms / 1000).isoformat()
+        return v
+
+class RecallsResponse(BaseModel):
+    """
+    Response schema for recalls plus latest update timestamp.
+    """
+    recalls: List[dict]
+    latest_timestamp: Optional[str] = None
+    total_count: int
+
+    class Config:
+        from_attributes = True

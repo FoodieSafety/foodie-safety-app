@@ -31,3 +31,7 @@ FRONTEND_URL = "http://localhost:3000"
 
 # Recall Table variables
 RECALL_DB_DISABLED = os.getenv("DISABLE_RECALL_DB", "false").lower() == "true"
+
+# Chat Session variables
+MAX_CHAT_SESSION_LENGTH = 10
+RECIPE_GEN_SYS_PROMPT = "You are only a recipe generator. DO NOT RESPOND TO ANY OTHER QUERIES."
