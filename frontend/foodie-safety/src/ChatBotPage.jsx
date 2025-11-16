@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from './Navbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -7,7 +7,7 @@ import config from './config';
 import { formatMarkdown } from './utils/formatMarkdown';
 
 const ChatBotPage = () => {
-  const { user, access_token, loading, authenticatedFetch } = useAuth();
+  const { access_token, loading, authenticatedFetch } = useAuth();
 
   // Messages for the current session
   const [messages, setMessages] = useState([]);
@@ -35,15 +35,15 @@ const ChatBotPage = () => {
 
         if (response.ok) {
           const sessionIds = await response.json();
-          
+
           // Convert session IDs to session objects
           const loadedSessions = sessionIds.map((id, index) => ({
             id: id,
             title: `Chat ${index + 1}`,
           }));
-          
+
           setSessions(loadedSessions);
-          
+
           // If no sessions exist, auto-start a new session
           if (loadedSessions.length === 0) {
             startNewSession();
@@ -68,13 +68,15 @@ const ChatBotPage = () => {
   const startNewSession = () => {
     // Don't pre-generate session_id, let backend create and return new UUID
     setSessionID('');  // Empty string means new session
-    
-    // Default greeting message for new chat
+
+    // Determine the new chat number based on current sessions length
+    const newChatNumber = sessions.length + 1;
+
+    // Set messages dynamically
     setMessages([
       {
         sender: "bot",
-        text: `👋 Hello! I'm Foodie Safety AI. 
-
+        text: `👋 Hello! I'm Foodie Safety AI. You're now in Chat ${newChatNumber}.
 Let's get started on finding the perfect recipe for you. 🍽️
 
 To help me tailor the best suggestions, could you please share a few details?
@@ -145,7 +147,7 @@ To help me tailor the best suggestions, could you please share a few details?
     try {
       // FormData required by backend
       const formData = new FormData();
-      formData.append("session_id", sessionID || "");
+      formData.append("session_id", sessionID || '');
       formData.append("message", newMessage.text);
 
       const apiUrl = `${config.API_BASE_URL}/chat/message`;
@@ -167,14 +169,12 @@ To help me tailor the best suggestions, could you please share a few details?
       if (data.session_id && data.session_id !== sessionID) {
         const newSessionId = data.session_id;
         setSessionID(newSessionId);
-        
+
         // If new session, add to session list
-        if (!sessionID) {
-          setSessions(prev => [...prev, {
-            id: newSessionId,
-            title: `Chat ${prev.length + 1}`
-          }]);
-        }
+        setSessions(prev => [
+          ...prev,
+          { id: newSessionId, title: `Chat ${prev.length + 1}` }
+        ]);
       }
 
       // Extract bot messages (by=0)
