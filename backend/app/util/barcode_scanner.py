@@ -29,7 +29,7 @@ def get_recall_info(barcode: Barcode, ddb_util: DynamoUtil) -> bool:
     """
     if RECALL_DB_DISABLED:
         return False
-    if ddb_util.scan_table(recall_table_name, "UPCs", barcode.code):
+    if ddb_util.scan_table(recall_table_name, "contains", "UPCs", barcode.code):
         return True
     return False
 
