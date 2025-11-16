@@ -11,7 +11,7 @@ import SettingsPage from "./SettingPage";
 import History from "./History";
 import DeactivatePage from "./DeactivatePage";
 import ChatBotPage from "./ChatBotPage";
-
+import RecallPage from "./recallPage";
 const App = () => {
   return (
     <AuthProvider>
@@ -28,6 +28,7 @@ const App = () => {
           <Route path="/history" element={<History />} />
           <Route path="/deactivate-account" element={<DeactivatePage />} />
           <Route path="/recipes" element={<ChatBotPage />} />
+          <Route path="/recalls" element={<RecallPage />} />
         </Routes>
       </Router>
     </AuthProvider>

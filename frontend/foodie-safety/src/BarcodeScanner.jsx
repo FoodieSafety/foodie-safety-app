@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import Quagga from "@ericblade/quagga2";
+// import Quagga from "@ericblade/quagga2"; 
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import PropTypes from 'prop-types';
 import { smartPreprocess, preprocessImage, getNextQualityLevel } from './utils/imagePreprocessor';
@@ -13,9 +13,9 @@ const BarcodeScanner = ({ onScan }) => {
   const [processing, setProcessing] = useState(false);
   
 
-  const [scanEngine, setScanEngine] = useState("quagga"); 
+  const [scanEngine, setScanEngine] = useState("zxing"); 
   
-  const quaggaVideoRef = useRef(null); 
+  // const quaggaVideoRef = useRef(null); 
   const zxingVideoRef = useRef(null); 
   const scannerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -25,7 +25,7 @@ const BarcodeScanner = ({ onScan }) => {
   const currentPresetRef = useRef(null); 
   const isRetryingRef = useRef(false); 
 
-
+/*
   const handleDetectedQuagga = useCallback((result) => {
     if (!result || !result.codeResult) return;
     
@@ -130,7 +130,7 @@ const BarcodeScanner = ({ onScan }) => {
       console.error("Error stopping QuaggaJS:", err);
     }
   }, [handleDetectedQuagga]);
-
+*/
   // ============= ZXing function=============
   const stopZXingScanner = useCallback(() => {
     try {
@@ -211,11 +211,12 @@ const BarcodeScanner = ({ onScan }) => {
     isInitializingRef.current = true;
 
     const initScanner = async () => {
-      
-      if (scanEngine === "quagga") {
-        await initQuaggaScanner();
-        isInitialized = true;
-      } else if (scanEngine === "zxing") {
+      // only use ZXing
+      // if (scanEngine === "quagga") {
+      //   await initQuaggaScanner();
+      //   isInitialized = true;
+      // } else 
+      if (scanEngine === "zxing") {
         await initZXingScanner();
         isInitialized = true;
       }
@@ -230,16 +231,18 @@ const BarcodeScanner = ({ onScan }) => {
       }
       
       if (isInitialized) {
-        if (scanEngine === "quagga") {
-          stopQuaggaScanner();
-        } else if (scanEngine === "zxing") {
+        // only use ZXing
+        // if (scanEngine === "quagga") {
+        //   stopQuaggaScanner();
+        // } else 
+        if (scanEngine === "zxing") {
           stopZXingScanner();
         }
       }
       
       isInitializingRef.current = false;
     };
-  }, [scanMode, scanEngine, initQuaggaScanner, initZXingScanner, stopQuaggaScanner, stopZXingScanner]);
+  }, [scanMode, scanEngine, initZXingScanner, stopZXingScanner]); // 移除QuaggaJS依赖
 
  
   const handleImageUpload = (event) => {
@@ -305,62 +308,64 @@ const BarcodeScanner = ({ onScan }) => {
     setProcessing(true);
     setError("");
 
-    if (scanEngine === "quagga") {
-      processImageWithQuagga(imageSrc);
-    } else if (scanEngine === "zxing") {
+    // QuaggaJS已弃用，仅使用ZXing
+    // if (scanEngine === "quagga") {
+    //   processImageWithQuagga(imageSrc);
+    // } else 
+    if (scanEngine === "zxing") {
       processImageWithZXing(imageSrc);
     }
   };
 
-  const processImageWithQuagga = (imageSrc) => {
-    Quagga.decodeSingle(
-      {
-        src: imageSrc,
-        numOfWorkers: 0,
-        inputStream: {
-          size: 1280
-        },
-        decoder: {
-          readers: [
-            "ean_reader",
-            "ean_8_reader",
-            "upc_reader",
-            "upc_e_reader",
-            "code_128_reader",
-            "code_39_reader"
-          ]
-        },
-        locate: true,
-        locator: {
-          patchSize: "medium",
-          halfSample: true
-        }
-      },
-      async (result) => {
-        if (result && result.codeResult) {
-          const code = result.codeResult.code;
-          
-          if (code && /^\d+$/.test(code) && code.length >= 8 && code.length <= 13) {
-            if (isRetryingRef.current) {
-              console.log("[QuaggaJS] ✓ Barcode detected after quality upgrade:", code);
-            } else {
-              console.log("[QuaggaJS] Barcode detected in image:", code);
-            }
-            setProcessing(false);
-            setError("");
-            onScan(code);
-            return;
-          }
-        }
-        
-        const upgraded = await tryUpgradeAndRetry();
-        if (!upgraded) {
-          setProcessing(false);
-          setError("[QuaggaJS] No barcode detected in image\nPlease ensure:\n1. Image is clear\n2. Good lighting\n3. Barcode is fully visible");
-        }
-      }
-    );
-  };
+  // const processImageWithQuagga = (imageSrc) => {
+  //   Quagga.decodeSingle(
+  //     {
+  //       src: imageSrc,
+  //       numOfWorkers: 0,
+  //       inputStream: {
+  //         size: 1280
+  //       },
+  //       decoder: {
+  //         readers: [
+  //           "ean_reader",
+  //           "ean_8_reader",
+  //           "upc_reader",
+  //           "upc_e_reader",
+  //           "code_128_reader",
+  //           "code_39_reader"
+  //         ]
+  //       },
+  //       locate: true,
+  //       locator: {
+  //         patchSize: "medium",
+  //         halfSample: true
+  //       }
+  //     },
+  //     async (result) => {
+  //       if (result && result.codeResult) {
+  //         const code = result.codeResult.code;
+  //         
+  //         if (code && /^\d+$/.test(code) && code.length >= 8 && code.length <= 13) {
+  //           if (isRetryingRef.current) {
+  //             console.log("[QuaggaJS] ✓ Barcode detected after quality upgrade:", code);
+  //           } else {
+  //             console.log("[QuaggaJS] Barcode detected in image:", code);
+  //           }
+  //           setProcessing(false);
+  //           setError("");
+  //           onScan(code);
+  //           return;
+  //         }
+  //       }
+  //       
+  //       const upgraded = await tryUpgradeAndRetry();
+  //       if (!upgraded) {
+  //         setProcessing(false);
+  //         setError("[QuaggaJS] No barcode detected in image\nPlease ensure:\n1. Image is clear\n2. Good lighting\n3. Barcode is fully visible");
+  //       }
+  //     }
+  //   );
+  // };
 
   const processImageWithZXing = async (imageSrc) => {
     try {
@@ -405,9 +410,11 @@ const BarcodeScanner = ({ onScan }) => {
   const handleModeChange = useCallback((mode) => {
     // Stop camera if switching away from camera mode
     if (scanMode === "camera" && mode !== "camera") {
-      if (scanEngine === "quagga") {
-        stopQuaggaScanner();
-      } else if (scanEngine === "zxing") {
+      // only use ZXing
+      // if (scanEngine === "quagga") {
+      //   stopQuaggaScanner();
+      // } else 
+      if (scanEngine === "zxing") {
         stopZXingScanner();
       }
       isInitializingRef.current = false;
@@ -421,14 +428,16 @@ const BarcodeScanner = ({ onScan }) => {
     setSelectedImage(null);
     setImagePreview(null);
     setScanning(mode === "camera");
-  }, [scanMode, scanEngine, stopQuaggaScanner, stopZXingScanner]);
+  }, [scanMode, scanEngine, stopZXingScanner]); // only use ZXing
 
   const handleEngineChange = useCallback((engine) => {
     
     if (scanMode === "camera") {
-      if (scanEngine === "quagga") {
-        stopQuaggaScanner();
-      } else if (scanEngine === "zxing") {
+      // only use ZXing
+      // if (scanEngine === "quagga") {
+      //   stopQuaggaScanner();
+      // } else 
+      if (scanEngine === "zxing") {
         stopZXingScanner();
       }
       isInitializingRef.current = false;
@@ -437,14 +446,14 @@ const BarcodeScanner = ({ onScan }) => {
     setScanEngine(engine);
     setError("");
     setScanning(scanMode === "camera");
-  }, [scanMode, scanEngine, stopQuaggaScanner, stopZXingScanner]);
+  }, [scanMode, scanEngine, stopZXingScanner]); // only use ZXing
 
   return (
     <div className="container mt-4">
       <div className="card shadow-lg p-4">
         <div className="card-body text-center">
-          {/* ============= Engine selector ============= */}
-          <div className="alert alert-info mb-3" role="alert">
+          {/* ============= Engine selector - only use ZXing ============= */}
+          {/* <div className="alert alert-info mb-3" role="alert">
             <strong>🔬 A/B Testing Mode</strong> - Compare barcode scanning engines
           </div>
 
@@ -496,7 +505,7 @@ const BarcodeScanner = ({ onScan }) => {
                 <div className="alert alert-info" role="alert">
                   <strong>Point the barcode at the camera</strong>
                   <br/>
-                  <small>Engine: {scanEngine === "quagga" ? "QuaggaJS2" : "ZXing"}</small>
+                  {/* <small>Engine: {scanEngine === "quagga" ? "QuaggaJS2" : "ZXing"}</small> */}
                 </div>
               )}
               
@@ -504,7 +513,7 @@ const BarcodeScanner = ({ onScan }) => {
                 <div className="alert alert-success" role="alert">
                   <strong>✅ Barcode scanned successfully!</strong>
                   <br/>
-                  <small>Using engine: {scanEngine === "quagga" ? "QuaggaJS2" : "ZXing"}</small>
+                  {/* <small>Using engine: {scanEngine === "quagga" ? "QuaggaJS2" : "ZXing"}</small> */}
                 </div>
               )}
 
@@ -520,13 +529,13 @@ const BarcodeScanner = ({ onScan }) => {
                   alignItems: 'center'
                 }}
               >
-                {/* QuaggaJS container (div) */}
-                {scanEngine === "quagga" && (
+                {/* QuaggaJS container (div) - only use ZXing */}
+                {/* {scanEngine === "quagga" && (
                   <div 
                     ref={quaggaVideoRef}
                     style={{ width: '100%', height: '100%' }}
                   />
-                )}
+                )} */}
                 
                 {/* ZXing container (video element) */}
                 {scanEngine === "zxing" && (
@@ -547,7 +556,6 @@ const BarcodeScanner = ({ onScan }) => {
                   <li>✓ Ensure adequate lighting</li>
                   <li>✓ Keep barcode clearly visible</li>
                   <li>✓ Adjust distance for optimal recognition</li>
-                  <li>✓ Try switching engines to compare results</li>
                 </ul>
               </div>
             </>
@@ -559,7 +567,7 @@ const BarcodeScanner = ({ onScan }) => {
               <div className="alert alert-info" role="alert">
                 <strong>🖼️ Upload an image containing a barcode</strong>
                 <p className="mb-0 small mt-2">Supports JPG, PNG, WEBP and other common image formats</p>
-                <small>Current engine: {scanEngine === "quagga" ? "QuaggaJS2" : "ZXing"}</small>
+                  {/* <small>Current engine: {scanEngine === "quagga" ? "QuaggaJS2" : "ZXing"}</small> */}
               </div>
 
               {/* File upload area */}
@@ -596,7 +604,7 @@ const BarcodeScanner = ({ onScan }) => {
                         <span className="visually-hidden">Processing...</span>
                       </div>
                       <p className="mt-2 text-muted">
-                        Recognizing barcode... (Using {scanEngine === "quagga" ? "QuaggaJS2" : "ZXing"})
+                        Recognizing barcode... (Using ZXing)
                       </p>
                     </div>
                   )}
@@ -609,7 +617,6 @@ const BarcodeScanner = ({ onScan }) => {
                   <li>Choose a clear barcode image</li>
                   <li>Ensure barcode is complete and unobstructed</li>
                   <li>Avoid glare and blur</li>
-                  <li>Try different engines to compare results</li>
                 </ul>
               </div>
             </>
