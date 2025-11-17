@@ -1,4 +1,4 @@
-requests-oauth
+requests-oauthlib
 fastapi[all]
 uvicorn[standard]
 python-dotenv
