@@ -16,7 +16,7 @@ class DynamoUtil:
 
     # Instantiate and get recall ddb connection
 
-    def __init__(self, endpoint: Optional[str] = None, region: str = "dummy", access_key="dummy", secret_key="dummy"):
+    def __init__(self, endpoint: Optional[str] = None, region: str = "us-east-2", access_key=None, secret_key=None):
         """
         Initialize DynamoDB utility instance and Logger instance
         :param endpoint: endpoint url
