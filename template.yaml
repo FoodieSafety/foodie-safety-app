@@ -28,11 +28,12 @@ Resources:
         - !Ref LambdaDependenciesLayer
       Environment:
         Variables:
-          DYNAMODB_TABLE: "RecallsTable"         # Environment variable for DynamoDB table
-          LAMBDA_LOGS_TABLE: "LambdaLogsTable"
+          DYNAMODB_ENDPOINT: "http://host.docker.internal:7000"
+          DYNAMODB_RECALL_TABLE: "RecallsTable"         # Environment variable for DynamoDB table
+          DYNAMODB_LAMBDA_LOGS_TABLE: "LambdaLogsTable"
+          RECALL_TIMESPAN: 30
           LOG_LEVEL: "DEBUG"
           PYTHONPATH: "/var/task"                # Include path
-          AWS_SAM_LOCAL: "true"                 # "true" if test with local DynamoDB
       Policies:
         - DynamoDBCrudPolicy:
             TableName: "RecallsTable"
