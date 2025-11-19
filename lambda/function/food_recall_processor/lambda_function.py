@@ -5,6 +5,7 @@ import os
 from food_recall_processor.utils.logging_util import Logger
 from food_recall_processor.utils.dynamo_util import DynamoUtil
 from food_recall_processor.src.recall_processor import RecallProcessor
+from food_recall_processor.utils.config import DYNAMODB_ENDPOINT, DYNAMODB_REGION, DYNAMODB_LAMBDA_LOGS_TABLE, DYNAMODB_RECALL_TABLE, RECALL_TIMESPAN
 
 
 def create_table_helper(database: DynamoUtil, table_name: str, key_schema:list, attribute_definitions:list) -> None:
@@ -26,17 +27,17 @@ def create_table_helper(database: DynamoUtil, table_name: str, key_schema:list, 
 def init_tables(ddb_util):
     # Create Recalls table
     create_table_helper(ddb_util,
-                        os.getenv("DYNAMODB_TABLE"),
+                        DYNAMODB_RECALL_TABLE,
                         key_schema = [{"AttributeName": "RecallID", "KeyType": "HASH"}],
                         attribute_definitions = [{"AttributeName": "RecallID", "AttributeType": "S"}]
                         )
 
     # Create Lambda logs table
     create_table_helper(ddb_util,
-                        os.getenv("LAMBDA_LOGS_TABLE"),
+                        DYNAMODB_LAMBDA_LOGS_TABLE,
                         # Using a global partition key for easy sorting.
                         key_schema = [{"AttributeName": "PK", "KeyType": "HASH"},
-                                      {"AttributeName": "LogTimestamp", "KeyType": "SORT"}],
+                                      {"AttributeName": "LogTimestamp", "KeyType": "RANGE"}],
                         attribute_definitions = [{"AttributeName": "PK", "AttributeType": "S"},
                                                  {"AttributeName": "LogTimestamp", "AttributeType": "N"}]
                         )
@@ -48,18 +49,20 @@ def lambda_handler(event, context):
     :param context: triggered context (None)
     :return: response in JSON format
     """
-    recalls_table_name = os.getenv("DYNAMODB_TABLE")
-    lambda_logs_table = os.getenv("LAMBDA_LOGS_TABLE")
-    is_local = os.getenv("AWS_SAM_LOCAL") == "true"
+    # Create ddb util
+    if DYNAMODB_ENDPOINT: # Used in Dev
+        ddb_util = DynamoUtil(endpoint=DYNAMODB_ENDPOINT)
+    elif DYNAMODB_REGION: # Used in Prod
+        ddb_util = DynamoUtil(region=DYNAMODB_REGION)
+    else:
+        return {
+            "statusCode": 400,
+            "body": f"Missing required argument to connect to ddb table. No endpoint or region specified.",
+        }
 
-    # Create db endpoint
-    ddb_endpoint = "http://host.docker.internal:7000" if is_local else None
-    delta = 30 if is_local else 7 # set testing delta as 30
-
-    # Create related instance
-    ddb_util = DynamoUtil(endpoint=ddb_endpoint)
+    # Create related instances
     logger = Logger(name="recall_processor", to_file=False)
-    processor = RecallProcessor(ddb_util, logger, delta_days=delta)
+    processor = RecallProcessor(ddb_util, logger, delta_days=RECALL_TIMESPAN)
 
     # Method to initialize both recalls and the lambda logs table
     init_tables(ddb_util)
@@ -67,14 +70,14 @@ def lambda_handler(event, context):
     # Get recalls
     recalls = processor.get_recall_data()
     if recalls:
-        processor.store_recall_data(recalls_table_name, recalls)
-        processor.store_log(lambda_logs_table, 200)
+        processor.store_recall_data(DYNAMODB_RECALL_TABLE, recalls)
+        processor.store_log(DYNAMODB_LAMBDA_LOGS_TABLE, 200)
         return {
             "statusCode": 200,
             "body": f"Stored {len(recalls)} recalls successfully.",
         }
     else:
-        processor.store_log(lambda_logs_table, 204)
+        processor.store_log(DYNAMODB_LAMBDA_LOGS_TABLE, 204)
         return {
             "statusCode": 204,
             "body": f"No recall data found.",
