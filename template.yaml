@@ -19,7 +19,7 @@ Resources:
     Metadata:
       BuildMethod: python3.12
     Properties:
-      Handler: food_recall_processor.local.lambda_function.lambda_handler
+      Handler: food_recall_processor.lambda_function.lambda_handler
       Runtime: python3.12
       CodeUri: ./lambda/function
       Timeout: 30
