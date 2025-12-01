@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  dynamodb:
+    image: amazon/dynamodb-local
+    container_name: dynamodb
+    ports:
+      - "7000:8000"   # map container port 8000 to host port 7000
+
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app   # mount backend code for live reload
+      - /app/.venv
+    depends_on:
+      - dynamodb
+    environment:
+      - MYSQL_HOST=host.docker.internal
+      - DYNAMODB_ENDPOINT=http://host.docker.internal:7000
+      - DYNAMODB_ACCESS_KEY=dummy
+      - DYNAMODB_SECRET_KEY=dummy
+
+  frontend:
+    build: ./frontend/foodie-safety
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/foodie-safety:/app  # mount frontend code for live reload
+      - /app/node_modules
+    depends_on:
+      - backend
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - HOST=0.0.0.0
