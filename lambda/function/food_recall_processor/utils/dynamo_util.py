@@ -4,7 +4,13 @@ from food_recall_processor.utils.logging_util import Logger
 from typing import Optional, List, Dict
 
 class DynamoUtil:
-    def __init__(self, endpoint: Optional[str] = None, region: str = "dummy", access_key="dummy", secret_key="dummy"):
+    def __init__(
+            self, 
+            endpoint: Optional[str] = None, 
+            region: Optional[str] = None, 
+            access_key: Optional[str] = None, 
+            secret_key: Optional[str] = None,
+    ):
         """
         Initialize DynamoDB utility instance and Logger instance
         :param endpoint: endpoint url

@@ -25,7 +25,7 @@ def fetch_food_recalls(start_time, end_time, logger):
     all_recalls = [] 
     # Fetch the recall data from OpenFDA
     openfda_recalls = OpenFDA.get_food_recalls_fda(start_time, end_time, logger)
-    usda_recalls = USDA.get_food_recalls_usda(start_time, end_time, logger)
+    usda_recalls = [] #USDA.get_food_recalls_usda(start_time, end_time, logger)
     # This log message will be lost in the sea of messages from DynamoDB. To check, Search "Fetched count" in terminal.
     # Same for other 'info' level messages. Try searching the terminal.
     logger.log(
