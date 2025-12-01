@@ -9,7 +9,9 @@ from typing import Optional, List, Dict
 
 def get_ddb_util():
     ddb_endpoint = os.getenv("DYNAMODB_ENDPOINT")
-    return DynamoUtil(endpoint=ddb_endpoint)
+    ddb_access_key = os.getenv("DYNAMODB_ACCESS_KEY")
+    ddb_secret_key = os.getenv("DYNAMODB_SECRET_KEY")
+    return DynamoUtil(endpoint=ddb_endpoint, access_key=ddb_access_key, secret_key=ddb_secret_key)
 
 
 class DynamoUtil:
