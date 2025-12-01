@@ -2,6 +2,28 @@
 
 - Ensure Python 3.13.0 is installed before cloning the repo
 
+# Running The App Via Docker (in Dev)
+
+## Prerequisite
+
+1. Docker is installed
+
+## Steps
+
+1. Enter into your CLI (You may be able to use Docker Desktop instead after the first run)
+
+2. Go into the project root directory
+
+3. Run the Docker containers with the following command
+```
+docker-compose up
+```
+*The first run will take around 5 minutes due to initial image building but following runs will be faster.
+
+## Result
+
+Docker containers for the frontend, backend, and dynamodb table should be up and running. The application can be accessed via http://localhost:3000.
+
 # Backend API Documentation
 
 - The following two links are the API documentation for the backend services (source code is the same)
@@ -11,7 +33,7 @@
 
 # Local Backend Environment Setup
 
-## Setting Up Virtual Environment
+## Setting Up Virtual Environment (If not using Docker)
 
 1. Navigate to backend directory
 
@@ -51,7 +73,7 @@ pip install -r requirements.txt
 pip freeze > requirements.txt
 ```
 
-## Running the Backend Server
+## Running the Backend Server (If not using Docker)
 
 Run the following command in the virtual environment to start the server locally
 
@@ -59,7 +81,7 @@ Run the following command in the virtual environment to start the server locally
 uvicorn app.main:app --reload
 ```
 
-## Deactivating Virtual Environment
+## Deactivating Virtual Environment (If not using Docker)
 
 ```
 deactivate
