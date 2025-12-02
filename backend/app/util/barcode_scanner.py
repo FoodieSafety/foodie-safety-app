@@ -26,11 +26,32 @@ recall_table_name = os.getenv("DYNAMODB_RECALL_TABLE")
 def get_recall_info(barcode: Barcode, ddb_util: DynamoUtil) -> bool:
     """
     Check if a given product barcode is in the recall database table.
+    Supports EAN-13 <-> UPC-A normalization:
+      - strips non-digit characters
+      - if 13 digits and starts with '0' also checks 12-digit UPC (drop leading zero)
+      - if 12 digits also checks 13-digit EAN (prepend leading zero)
     """
     if RECALL_DB_DISABLED:
         return False
-    if ddb_util.scan_table(recall_table_name, "contains", "UPCs", barcode.code):
-        return True
+
+    # Normalize to digits only
+    raw = (barcode.code or "")
+    digits = "".join(ch for ch in raw if ch.isdigit())
+    if not digits:
+        return False
+
+    # Build candidate codes to check (original + normalized counterpart)
+    candidates = {digits}
+    if len(digits) == 13 and digits.startswith("0"):
+        candidates.add(digits[1:])  # EAN-13 -> UPC-A
+    elif len(digits) == 12:
+        candidates.add("0" + digits)  # UPC-A -> EAN-13
+
+    # Check each candidate against the DynamoDB "UPCs" list attribute
+    for candidate in candidates:
+        if ddb_util.scan_table(recall_table_name, "contains", "UPCs", candidate):
+            return True
+
     return False
 
 def get_products_info(barcodes: List[Barcode], ddb_util: DynamoUtil, db:Session) -> Tuple[List[ProductInfo], List[ProductError]]:
@@ -78,12 +99,30 @@ def get_products_info(barcodes: List[Barcode], ddb_util: DynamoUtil, db:Session)
 
 def check_db_for_upcs(barcodes:List[Barcode], db:Session):
     """
-    Function designed to get a list of barcodes from the Product table. Went with the flow since
-    get_products_info already gets List[Barcode] as a param. In the future, in case we are multiple barcodes we don't have
-    to hit the DB for each code
+    Function designed to get a list of barcodes from the Product table.
+    Now expands each barcode to include EAN-13 <-> UPC-A variants so that
+    stored codes in either format are matched.
     """
-    codes = [barcode.code for barcode in barcodes]
-    products = db.query(Product).filter(Product.code.in_(codes)).all()
-    # Ignore IDE warnings in the below line with respect to expected type. Check on this only if you feel this is the issue.
+    def _expand_variants(code: str):
+        digits = "".join(ch for ch in (code or "") if ch.isdigit())
+        if not digits:
+            return []
+        variants = {digits}
+        if len(digits) == 12:
+            variants.add("0" + digits)    # UPC-A -> EAN-13
+        elif len(digits) == 13 and digits.startswith("0"):
+            variants.add(digits[1:])      # EAN-13 -> UPC-A
+        return list(variants)
+
+    # Build a unique set of candidate codes to query the DB
+    candidate_codes = set()
+    for barcode in barcodes:
+        candidate_codes.update(_expand_variants(barcode.code))
+
+    if not candidate_codes:
+        return []
+
+    products = db.query(Product).filter(Product.code.in_(list(candidate_codes))).all()
+    # Ignore IDE warnings in the below line with respect to expected type.
     product_info_list = [ProductInfo(code = product.code, name=product.name, brand=product.brand, recall=False) for product in products]
     return product_info_list
