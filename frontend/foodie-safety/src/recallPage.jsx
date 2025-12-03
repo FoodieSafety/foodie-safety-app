@@ -126,19 +126,21 @@ const RecallPage = () => {
     const [recalls, setRecalls] = useState(mockRecallsData);
     const [filteredRecalls, setFilteredRecalls] = useState(mockRecallsData);
     const [selectedDateRange, setSelectedDateRange] = useState('all');
-    const [lastUpdated, setLastUpdated] = useState('10/29/2025');
+    const [selectedClassifications, setSelectedClassifications] = useState(['Class I', 'Class II', 'Class III']);
+    const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleDateString('en-US'));
 
-    // date filter function
+    // combined filter function for date and classification
     useEffect(() => {
-        filterRecallsByDate(selectedDateRange);
-    }, [selectedDateRange]);
+        filterRecalls(selectedDateRange, selectedClassifications);
+    }, [selectedDateRange, selectedClassifications]);
 
-    const filterRecallsByDate = (range) => {
-        const today = new Date('2025-10-29'); // fake current date
+    const filterRecalls = (range, classifications) => {
+        const today = new Date(); // current date
         let filtered = [...recalls];
 
+        // filter by date range
         if (range !== 'all') {
-            filtered = recalls.filter(recall => {
+            filtered = filtered.filter(recall => {
                 const recallDate = new Date(recall.reportDate);
                 const diffTime = today - recallDate;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -160,6 +162,11 @@ const RecallPage = () => {
             });
         }
 
+        // filter by classification
+        if (classifications.length > 0) {
+            filtered = filtered.filter(recall => classifications.includes(recall.classification));
+        }
+
         // sort by date in descending order (latest first)
         filtered.sort((a, b) => new Date(b.reportDate) - new Date(a.reportDate));
         setFilteredRecalls(filtered);
@@ -167,6 +174,18 @@ const RecallPage = () => {
 
     const handleDateRangeChange = (e) => {
         setSelectedDateRange(e.target.value);
+    };
+
+    const toggleClassification = (classification) => {
+        setSelectedClassifications(prev => {
+            if (prev.includes(classification)) {
+                // prevent deselecting all - keep at least one selected
+                if (prev.length === 1) return prev;
+                return prev.filter(c => c !== classification);
+            } else {
+                return [...prev, classification];
+            }
+        });
     };
 
     return (
@@ -177,38 +196,87 @@ const RecallPage = () => {
                 <p>Get recall information across the USA</p>
             </div>
 
-            {/* control bar - update time and date filter */}
+            {/* control bar - classification filter, update time and date filter */}
             <div className="container mt-4">
-                <div className="d-flex justify-content-end align-items-center mb-4">
-                    <div className="me-4">
-                        <span style={{ fontSize: '1.1rem', color: '#6c757d' }}>
-                            Last updated on <strong>{lastUpdated}</strong>
-                        </span>
-                    </div>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    {/* Classification filter checkboxes - left side */}
                     <div className="d-flex align-items-center">
-                        <label htmlFor="dateFilter" className="me-2" style={{ fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                            Display data from
-                        </label>
-                        <select 
-                            id="dateFilter"
-                            className="form-select" 
-                            value={selectedDateRange}
-                            onChange={handleDateRangeChange}
-                            style={{ 
-                                width: '200px',
-                                backgroundColor: '#6c757d',
-                                color: 'white',
-                                border: 'none',
-                                fontWeight: '500'
-                            }}
-                        >
-                            <option value="all">All Time</option>
-                            <option value="7days">Last 7 Days</option>
-                            <option value="2weeks">Last 2 Weeks</option>
-                            <option value="30days">Last 30 Days</option>
-                            <option value="3months">Last 3 Months</option>
-                            <option value="6months">Last 6 Months</option>
-                        </select>
+                        <span className="me-3" style={{ fontSize: '1rem', fontWeight: '500' }}>Filter by:</span>
+                        <div className="d-flex gap-3" role="group" aria-label="Classification filter">
+                            <div className="form-check">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="classI"
+                                    checked={selectedClassifications.includes('Class I')}
+                                    onChange={() => toggleClassification('Class I')}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                                <label className="form-check-label" htmlFor="classI" style={{ cursor: 'pointer' }}>
+                                    Class I
+                                </label>
+                            </div>
+                            <div className="form-check">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="classII"
+                                    checked={selectedClassifications.includes('Class II')}
+                                    onChange={() => toggleClassification('Class II')}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                                <label className="form-check-label" htmlFor="classII" style={{ cursor: 'pointer' }}>
+                                    Class II
+                                </label>
+                            </div>
+                            <div className="form-check">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="classIII"
+                                    checked={selectedClassifications.includes('Class III')}
+                                    onChange={() => toggleClassification('Class III')}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                                <label className="form-check-label" htmlFor="classIII" style={{ cursor: 'pointer' }}>
+                                    Class III
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right side - update time and date filter */}
+                    <div className="d-flex align-items-center">
+                        <div className="me-4">
+                            <span style={{ fontSize: '1.1rem', color: '#6c757d' }}>
+                                Last updated on <strong>{lastUpdated}</strong>
+                            </span>
+                        </div>
+                        <div className="d-flex align-items-center">
+                            <label htmlFor="dateFilter" className="me-2" style={{ fontSize: '1rem', whiteSpace: 'nowrap' }}>
+                                Display data from
+                            </label>
+                            <select 
+                                id="dateFilter"
+                                className="form-select" 
+                                value={selectedDateRange}
+                                onChange={handleDateRangeChange}
+                                style={{ 
+                                    width: '200px',
+                                    backgroundColor: '#6c757d',
+                                    color: 'white',
+                                    border: 'none',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                <option value="all">All Time</option>
+                                <option value="7days">Last 7 Days</option>
+                                <option value="2weeks">Last 2 Weeks</option>
+                                <option value="30days">Last 30 Days</option>
+                                <option value="3months">Last 3 Months</option>
+                                <option value="6months">Last 6 Months</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
