@@ -263,7 +263,7 @@ const ChatBotPage = () => {
 
       const data = await response.json();
 
-      // Update sessionID if backend created a new one
+      // Update sessionID if backend created a new one (new session)
       if (data.session_id && data.session_id !== sessionID) {
         const newSessionId = data.session_id;
         const preview = truncateText(newMessage.text);
@@ -280,6 +280,14 @@ const ChatBotPage = () => {
           { id: newSessionId, title: preview, needsPreview: false },
           ...prev
         ]);
+      } else if (sessionID) {
+        // Existing session: move it to the top of the list
+        setSessions(prev => {
+          const currentSession = prev.find(s => s.id === sessionID);
+          if (!currentSession) return prev;
+          const otherSessions = prev.filter(s => s.id !== sessionID);
+          return [currentSession, ...otherSessions];
+        });
       }
 
       // Extract bot messages (by=0)
