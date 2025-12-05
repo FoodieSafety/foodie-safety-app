@@ -1,7 +1,5 @@
 import os
 from typing import List, Tuple
-import cv2
-import numpy as np
 from sqlalchemy.orm import Session
 
 from .models import Product
@@ -15,13 +13,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 recall_table_name = os.getenv("DYNAMODB_RECALL_TABLE")
-
-# def decode_image(product_img_bytes: bytes) -> List[Barcode]:
-#     np_img = np.frombuffer(product_img_bytes, np.uint8)
-#     product_img = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
-#     decoded_products = decode(product_img)
-#     barcodes = [Barcode(code=product.data.decode('utf-8')) for product in decoded_products]
-#     return barcodes
 
 def get_recall_info(barcode: Barcode, ddb_util: DynamoUtil) -> bool:
     """
