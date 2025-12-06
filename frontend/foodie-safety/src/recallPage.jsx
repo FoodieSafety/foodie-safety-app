@@ -1,138 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
+import config from './config';
+import { useAuth } from './context/AuthContext';
 
 const RecallPage = () => {
-    //fake data for now - based on real backend data structure
-    const mockRecallsData = [
-        {
-            id: "51fdd3046a8bd3e73a1280dd07d895f02be1ba0f5620e431401481a0dd9bd349",
-            productName: "Wegmans Large Ultimate Strawberry Topped Cheesecake",
-            brand: "Wegmans Food Markets, Inc.",
-            classification: "Class I",
-            reportDate: "2025-10-29",
-            affectedAreas: "VA, MD, NC, D.C.",
-            reason: "Contains undeclared pecans",
-            codeInfo: "Item #51474 Sell By 9/24 - 10/01 Purchased between 9/19 and 9/26 UPC Codes: 0-77890-51474-0 OR 051474-XXXXX",
-            upcs: ["077890514740"],
-            quantity: "521 units (total of all products)",
-            source: "OpenFDA"
-        },
-        {
-            id: "461531bb777be516670138378ea1d366e749ee343df86b8295f3f42cd80c7af7",
-            productName: "Free Range Grade AA Large Brown Eggs, Loose Pack in Boxes",
-            brand: "Black Sheep Egg Company, LLC",
-            classification: "Class I",
-            reportDate: "2025-10-22",
-            affectedAreas: "AR, MO, MS, TX, CA, IN",
-            reason: "Potential Salmonella contamination",
-            codeInfo: "Julian Date 190 Best By: 8/22/2025 through Julian Date 260 Best By: 10/31/2025",
-            upcs: [],
-            quantity: "20,625 dozen",
-            source: "OpenFDA"
-        },
-        {
-            id: "d1514cbaa83df3379b452fee19a3eb7c8efa6a38cd089f559f16304208a15535",
-            productName: "Cut Fresh Fruit Mix (Contains: Cantaloupe, Honeydew, and Red Grapes)",
-            brand: "Wholesale Produce Supply LLC",
-            classification: "Class I",
-            reportDate: "2025-10-22",
-            affectedAreas: "IA, IL, ND, NE, WI",
-            reason: "Potential Listeria monocytogenes contamination",
-            codeInfo: "Lot Number: X0924913, X0925463, X0924882, X0924924, X0925462 Expiration 10/4/2025",
-            upcs: ["0702530057323", "790629118216", "790629080070"],
-            quantity: "307 total cases/pails recalled",
-            source: "OpenFDA"
-        },
-        {
-            id: "d34ef04aa2727900e66566a6f310fb42a584de8084c6b5e24d29fcb549b617d7",
-            productName: "Organic BABY Bedtime Drops - Sleep + Immunity Blend",
-            brand: "M.O.M Enterprises, LLC",
-            classification: "Class II",
-            reportDate: "2025-10-15",
-            affectedAreas: "AL, AR, AZ, CA, CO, CT, DE, FL, GA, IA, IL, IN, KS, KY, LA, MI, MN, MO, MS, NC, ND, NH, NJ, NY, OH, OR, PA, SC, TN, TX, UT, VA, WI",
-            reason: "Potential yeast contamination",
-            codeInfo: "Lot code: 25100, 25148, 25155 UPC: 679234051814 EXP 04/2027, 05/2027, 06/2027",
-            upcs: ["679234051814"],
-            quantity: "46,752 units/bottles",
-            source: "OpenFDA"
-        },
-        {
-            id: "abc123def456",
-            productName: "Organic Almond Butter",
-            brand: "Healthy Choice Foods",
-            classification: "Class I",
-            reportDate: "2025-10-10",
-            affectedAreas: "Nationwide",
-            reason: "Possible Salmonella contamination",
-            codeInfo: "Best By dates: 08/15/2025 through 11/30/2025",
-            upcs: ["098765432111"],
-            quantity: "15,000 jars",
-            source: "OpenFDA"
-        },
-        {
-            id: "xyz789ghi012",
-            productName: "Ground Beef Patties, 80% Lean",
-            brand: "Prime Meats Inc.",
-            classification: "Class I",
-            reportDate: "2025-10-08",
-            affectedAreas: "TX, OK, LA, AR",
-            reason: "Possible E. coli O157:H7 contamination",
-            codeInfo: "Production dates: 09/15/2025 - 09/22/2025. EST. 1234M",
-            upcs: ["789123456789"],
-            quantity: "48,000 lbs",
-            source: "OpenFDA"
-        },
-        {
-            id: "mno345pqr678",
-            productName: "Frozen Mixed Berry Blend",
-            brand: "Berry Best Farms",
-            classification: "Class II",
-            reportDate: "2025-09-28",
-            affectedAreas: "CA, OR, WA, NV, AZ",
-            reason: "Potential Hepatitis A contamination",
-            codeInfo: "Product Code: BB2025-09, Best By: 09/2026",
-            upcs: ["456789123456", "456789123457"],
-            quantity: "8,500 bags",
-            source: "OpenFDA"
-        },
-        {
-            id: "stu901vwx234",
-            productName: "Organic Baby Spinach",
-            brand: "Green Valley Organics",
-            classification: "Class I",
-            reportDate: "2025-09-25",
-            affectedAreas: "Nationwide",
-            reason: "Possible Listeria monocytogenes contamination",
-            codeInfo: "Best if Used By dates from 09/20/2025 to 10/05/2025",
-            upcs: ["321654987321"],
-            quantity: "12,000 packages",
-            source: "OpenFDA"
-        },
-        {
-            id: "jkl567mno890",
-            productName: "Chocolate Chip Cookie Dough Ice Cream",
-            brand: "Sweet Dreams Creamery",
-            classification: "Class II",
-            reportDate: "2025-09-20",
-            affectedAreas: "NY, NJ, PA, CT, MA",
-            reason: "Undeclared tree nuts (walnuts)",
-            codeInfo: "Lot Numbers: SD20250915, SD20250916, SD20250917",
-            upcs: ["654987321654"],
-            quantity: "3,200 pints",
-            source: "OpenFDA"
-        }
-    ];
-
-    const [recalls, setRecalls] = useState(mockRecallsData);
-    const [filteredRecalls, setFilteredRecalls] = useState(mockRecallsData);
+    const { access_token, authenticatedFetch } = useAuth();
+    
+    const [recalls, setRecalls] = useState([]);
+    const [filteredRecalls, setFilteredRecalls] = useState([]);
     const [selectedDateRange, setSelectedDateRange] = useState('all');
     const [selectedClassifications, setSelectedClassifications] = useState(['Class I', 'Class II', 'Class III']);
-    const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleDateString('en-US'));
+    const [lastUpdated, setLastUpdated] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // combined filter function for date and classification
+    // Fetch recalls from backend API
+    useEffect(() => {
+        const fetchRecalls = async () => {
+            try {
+                setLoading(true);
+                // Use authenticatedFetch if user is logged in, otherwise use regular fetch
+                const response = access_token 
+                    ? await authenticatedFetch(`${config.API_BASE_URL}/recalls`)
+                    : await fetch(`${config.API_BASE_URL}/recalls`);
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const rawRecalls = data.recalls || [];
+                
+                // Transform backend field names to frontend format
+                const recallData = rawRecalls.map(recall => ({
+                    id: recall.RecallID || recall.id || "",
+                    productName: recall["Product Description"] || recall.productName || "",
+                    brand: recall["Recalling Firm"] || recall.brand || "",
+                    classification: recall.Classification || recall.classification || "",
+                    reportDate: recall["Report Date"] || recall.reportDate || "",
+                    affectedAreas: recall.Distribution || recall.affectedAreas || "",
+                    reason: recall["Reason for Recall"] || recall.reason || "",
+                    codeInfo: recall["Code Info"] || recall.codeInfo || "",
+                    upcs: recall.UPCs || recall.upcs || [],
+                    quantity: recall["Product Quantity"] || recall.quantity || "",
+                    source: recall.Source || recall.source || "",
+                }));
+                
+                setRecalls(recallData);
+                setFilteredRecalls(recallData);
+                
+                // Set last updated timestamp
+                if (data.latest_timestamp) {
+                    const date = new Date(data.latest_timestamp);
+                    setLastUpdated(date.toLocaleDateString('en-US'));
+                } else {
+                    setLastUpdated(new Date().toLocaleDateString('en-US'));
+                }
+            } catch (err) {
+                console.error('Error fetching recalls:', err);
+                setError('Failed to load recall data. Please try again later.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRecalls();
+    }, [access_token, authenticatedFetch]);
+
+    // Combined filter function for date and classification
     useEffect(() => {
         filterRecalls(selectedDateRange, selectedClassifications);
-    }, [selectedDateRange, selectedClassifications]);
+    }, [selectedDateRange, selectedClassifications, recalls]);
 
     const filterRecalls = (range, classifications) => {
         const today = new Date(); // current date
@@ -280,9 +218,25 @@ const RecallPage = () => {
                     </div>
                 </div>
 
+                {/* Error indicator */}
+                {error && !loading && (
+                    <div className="alert alert-danger mb-3" role="alert">
+                        <small>⚠️ {error}</small>
+                    </div>
+                )}
+
                 {/* recall data display area */}
                 <div className="row g-4 pb-5">
-                    {filteredRecalls.length > 0 ? (
+                    {loading ? (
+                        <div className="col-12">
+                            <div className="text-center py-5">
+                                <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+                                    <span className="visually-hidden">Loading...</span>
+                                </div>
+                                <p className="mt-3 text-muted">Loading recall data...</p>
+                            </div>
+                        </div>
+                    ) : filteredRecalls.length > 0 ? (
                         filteredRecalls.map((recall) => (
                             <div key={recall.id} className="col-lg-4 col-md-6">
                                 <div 
@@ -312,9 +266,15 @@ const RecallPage = () => {
                                             </span>
                                         </div>
 
-                                        {/* Product name */}
-                                        <h5 className="card-title text-center mb-2" style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
-                                            {recall.productName}
+                                        {/* Product name - truncated with tooltip */}
+                                        <h5 
+                                            className="card-title text-center mb-2" 
+                                            style={{ fontWeight: 'bold', fontSize: '1.2rem' }}
+                                            title={recall.productName}
+                                        >
+                                            {recall.productName && recall.productName.length > 60 
+                                                ? `${recall.productName.substring(0, 60)}...` 
+                                                : recall.productName}
                                         </h5>
                                         
                                         {/* brand name with info icon */}
@@ -354,11 +314,13 @@ const RecallPage = () => {
                                                         fontSize: '0.85rem'
                                                     }}
                                                 >
-                                                    {/* <div className="mb-2">
-                                                        <strong style={{ color: '#dc3545' }}>⚠️ Key Reasons:</strong>
-                                                        <p className="mb-0 mt-1" style={{ color: '#212529' }}>{recall.reason}</p>
-                                                    </div> */}
-                                                    {/* <hr style={{ margin: '10px 0' }} /> */}
+                                                    <div className="mb-2">
+                                                        <strong style={{ color: '#17a2b8' }}>📋 Full Product Info:</strong>
+                                                        <p className="mb-0 mt-1" style={{ color: '#212529', fontSize: '0.8rem' }}>
+                                                            {recall.productName}
+                                                        </p>
+                                                    </div>
+                                                    <hr style={{ margin: '10px 0' }} />
                                                     <div>
                                                         <strong style={{ color: '#495057' }}>📦 Batch/Lot Info:</strong>
                                                         <p className="mb-0 mt-1" style={{ color: '#6c757d', fontSize: '0.8rem' }}>

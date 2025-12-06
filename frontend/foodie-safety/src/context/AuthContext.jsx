@@ -44,6 +44,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear chat preview cache for current user before clearing user data
+    if (user?.email) {
+      localStorage.removeItem(`chat_previews_${user.email}`);
+    }
+
     setUser(null);
     setToken(null);
     localStorage.removeItem("currentUser");
