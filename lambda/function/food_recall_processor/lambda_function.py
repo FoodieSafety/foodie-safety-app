@@ -51,7 +51,7 @@ def lambda_handler(event, context):
     """
     # Create ddb util
     if DYNAMODB_ENDPOINT: # Used in Dev
-        ddb_util = DynamoUtil(endpoint=DYNAMODB_ENDPOINT)
+        ddb_util = DynamoUtil(endpoint=DYNAMODB_ENDPOINT, region='us-east-2')
     elif DYNAMODB_REGION: # Used in Prod
         ddb_util = DynamoUtil(region=DYNAMODB_REGION)
     else:
