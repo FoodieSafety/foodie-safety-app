@@ -10,6 +10,10 @@ class UserBase(BaseModel):
     last_name: str
     zip_code: str
     email: EmailStr
+    # Diet and Allergy Preferences
+    general_diet: Optional[str] = "na"
+    religious_cultural_diets: Optional[str] = "na"
+    allergens: Optional[str] = "na"  # Comma-separated string
 
 class UserCreate(UserBase):
     password: str

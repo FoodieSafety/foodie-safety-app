@@ -21,6 +21,12 @@ class User(Base):
     zip_code = Column(String(10), nullable=False)
     email = Column(String(100), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
+    
+    # Diet and Allergy Preferences
+    general_diet = Column(String(50), nullable=True, default="na")
+    religious_cultural_diets = Column(String(50), nullable=True, default="na")
+    allergens = Column(String(500), nullable=True, default="na")  # Comma-separated
+    
     created_at = Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), nullable=False)
     updated_at = Column(
         TIMESTAMP,

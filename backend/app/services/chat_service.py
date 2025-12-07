@@ -1,9 +1,11 @@
 import os
 from fastapi import APIRouter, status, Form, Depends
+from sqlalchemy.orm import Session
 from typing import List
 from ..controllers.chat_controller import ChatController
 from ..util.oauth2 import get_current_user
 from ..util.dynamo_util import DynamoUtil, get_ddb_util
+from ..util.database import get_db
 from ..util.schemas import ChatResponse, ChatMsg, MsgBy, ChatSession
 
 # Create router object
@@ -20,6 +22,7 @@ async def post_message(
         session_id: str = Form(...),
         message: str = Form(...),
         ddb_util: DynamoUtil = Depends(get_ddb_util),
+        db: Session = Depends(get_db),
         token_data = Depends(get_current_user)
 ):
     """
@@ -27,11 +30,12 @@ async def post_message(
     :param session_id: session to post the message to
     :param message: text message to be sent
     :param ddb_util: dynamodb access for chat storage
+    :param db: MySQL session for user preferences
     :param token_data: user token
     :return: AI response
     """
     messages = [ChatMsg(by=MsgBy.USER, content=message)]
-    return ChatController.post_messages(session_id=session_id, messages=messages, ddb_util=ddb_util, token_data=token_data)
+    return ChatController.post_messages(session_id=session_id, messages=messages, ddb_util=ddb_util, db=db, token_data=token_data)
 
 @router.get("/message", response_model=ChatSession)
 async def get_messages(
