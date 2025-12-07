@@ -17,7 +17,11 @@ const LoginForm = () => {
     password: '',
     confirmPassword: '',
     zipCode: '',
+    generalDiet: 'na',
+    religiousCulturalDiets: 'na',
+    allergens: [],
   });
+
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -96,6 +100,9 @@ const LoginForm = () => {
         email: formData.email,
         password: formData.password,
         zip_code: formData.zipCode,
+        general_diet: formData.generalDiet,
+        religious_cultural_diets: formData.religiousCulturalDiets,
+        allergens: formData.allergens.length > 0 ? formData.allergens.join(',') : 'na',
       };
 
       try {
@@ -145,9 +152,9 @@ const LoginForm = () => {
               {isLoginMode && loginError && (
                 <div className="alert alert-danger alert-dismissible fade show" role="alert">
                   <strong>Login Failed!</strong> {loginError}
-                  <button 
-                    type="button" 
-                    className="btn-close" 
+                  <button
+                    type="button"
+                    className="btn-close"
                     onClick={() => setLoginError('')}
                     aria-label="Close"
                   ></button>
@@ -158,9 +165,9 @@ const LoginForm = () => {
               {!isLoginMode && signupSuccess && (
                 <div className="alert alert-success alert-dismissible fade show" role="alert">
                   <strong>Sign-up Successful!</strong> {signupSuccess}
-                  <button 
-                    type="button" 
-                    className="btn-close" 
+                  <button
+                    type="button"
+                    className="btn-close"
                     onClick={() => setSignupSuccess('')}
                     aria-label="Close"
                   ></button>
@@ -171,9 +178,9 @@ const LoginForm = () => {
               {!isLoginMode && signupError && (
                 <div className="alert alert-danger alert-dismissible fade show" role="alert">
                   <strong>Sign-up Failed!</strong> {signupError}
-                  <button 
-                    type="button" 
-                    className="btn-close" 
+                  <button
+                    type="button"
+                    className="btn-close"
                     onClick={() => setSignupError('')}
                     aria-label="Close"
                   ></button>
@@ -206,6 +213,18 @@ const LoginForm = () => {
                       />
                     </div>
                     <div className="mb-3">
+                      <label className="form-label">Email</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                      />
+                      {emailError && <div className="text-danger">{emailError}</div>}
+                    </div>
+                    <div className="mb-3">
                       <label className="form-label">Zip Code</label>
                       <input
                         type="text"
@@ -216,20 +235,85 @@ const LoginForm = () => {
                         required
                       />
                     </div>
+                    <div className="mb-3">
+                      <label className="form-label">General Diet</label>
+                      <select
+                        className="form-select"
+                        name="generalDiet"
+                        value={formData.generalDiet}
+                        onChange={handleInputChange}
+                      >
+                        <option value="na">N/A</option>
+                        <option value="vegetarian">Vegetarian</option>
+                        <option value="vegan">Vegan</option>
+                        <option value="pescatarian">Pescatarian</option>
+                        <option value="flexitarian">Flexitarian</option>
+                        <option value="plant_based">Plant-based</option>
+                        <option value="raw_food">Raw food</option>
+                        <option value="whole_food_diet">Whole-food diet</option>
+                      </select>
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Religious / Cultural Diet</label>
+                      <select
+                        className="form-select"
+                        name="religiousCulturalDiets"
+                        value={formData.religiousCulturalDiets}
+                        onChange={handleInputChange}
+                      >
+                        <option value="na">N/A</option>
+                        <option value="halal">Halal</option>
+                        <option value="kosher">Kosher</option>
+                        <option value="jain">Jain</option>
+                        <option value="hindu_vegetarian_no_eggs">Hindu Vegetarian (No eggs)</option>
+                        <option value="buddhist_vegetarian">Buddhist Vegetarian</option>
+                        <option value="seventh_day_adventist">Seventh-day Adventist</option>
+                      </select>
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Allergens</label>
+                      {["peanuts", "tree_nuts", "milk", "eggs", "wheat", "soy", "fish", "shellfish", "sesame"].map((a) => (
+                        <div key={a} className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={a}
+                            checked={formData.allergens.includes(a)}
+                            onChange={(e) => {
+                              let updatedAllergens = [...formData.allergens];
+                              if (e.target.checked) {
+                                updatedAllergens.push(a);
+                              } else {
+                                updatedAllergens = updatedAllergens.filter(x => x !== a);
+                              }
+                              setFormData({ ...formData, allergens: updatedAllergens });
+                            }}
+                          />
+                          <label className="form-check-label" htmlFor={a}>
+                            {a.replace('_', ' ').toUpperCase()}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </>
                 )}
-                <div className="mb-3">
-                  <label className="form-label">Email</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                  />
-                  {emailError && <div className="text-danger">{emailError}</div>}
-                </div>
+
+                {/* Email for login mode only */}
+                {isLoginMode && (
+                  <div className="mb-3">
+                    <label className="form-label">Email</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                    />
+                    {emailError && <div className="text-danger">{emailError}</div>}
+                  </div>
+                )}
+
                 <div className="mb-3">
                   <label className="form-label">Password</label>
                   <input
@@ -241,6 +325,7 @@ const LoginForm = () => {
                     required
                   />
                 </div>
+
                 {!isLoginMode && (
                   <div className="mb-3">
                     <label className="form-label">Confirm Password</label>
@@ -255,6 +340,7 @@ const LoginForm = () => {
                     {passwordError && <div className="text-danger">{passwordError}</div>}
                   </div>
                 )}
+
                 <button type="submit" className="btn btn-primary w-100">
                   {isLoginMode ? 'Login' : 'Sign Up'}
                 </button>

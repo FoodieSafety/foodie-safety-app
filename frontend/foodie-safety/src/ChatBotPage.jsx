@@ -78,6 +78,9 @@ const ChatBotPage = () => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
+  // Delete function for the chat sessions:
+  const [sessionToDelete, setSessionToDelete] = useState(null);
+
   const chatEndRef = useRef(null);
 
   // Load missing previews in parallel for sessions not in cache
@@ -127,6 +130,15 @@ const ChatBotPage = () => {
     ));
   }, [authenticatedFetch, user?.email]);
 
+  // Start a new chat session
+  const startNewSession = useCallback(() => {
+    // Don't pre-generate session_id, let backend create and return new UUID
+    setSessionID('');
+
+    // Set welcome message
+    setMessages([getWelcomeMessage()]);
+  }, []);
+
   // Load user's chat session list
   useEffect(() => {
     const loadChatSessions = async () => {
@@ -174,21 +186,12 @@ const ChatBotPage = () => {
     };
 
     loadChatSessions();
-  }, [access_token, loading, authenticatedFetch, user?.email, loadMissingPreviews]);
+  }, [access_token, loading, authenticatedFetch, user?.email, loadMissingPreviews, startNewSession]);
 
   // Auto-scroll
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
-
-  // Start a new chat session
-  const startNewSession = () => {
-    // Don't pre-generate session_id, let backend create and return new UUID
-    setSessionID('');  // Empty string means new session
-
-    // Set welcome message
-    setMessages([getWelcomeMessage()]);
-  };
 
   // Switch chat sessions
   const switchSession = async (id) => {
@@ -308,6 +311,35 @@ const ChatBotPage = () => {
     }
   };
 
+  const handleConfirmDelete = () => {
+    if (!sessionToDelete) return;
+
+    // Remove from React state
+    setSessions(prev => prev.filter(s => s.id !== sessionToDelete));
+
+    // Remove preview from localStorage
+    if (user?.email) {
+      const cache = getPreviewCache(user.email);
+      delete cache[sessionToDelete];
+      savePreviewCache(user.email, cache);
+    }
+
+    // If you deleted the active session
+    if (sessionID === sessionToDelete) {
+      const remaining = sessions.filter(s => s.id !== sessionToDelete);
+
+      if (remaining.length > 0) {
+        // Select the next available session
+        switchSession(remaining[0].id);
+      } else {
+        // No sessions left → start fresh
+        startNewSession();
+      }
+    }
+
+    setSessionToDelete(null);
+  };
+
   return (
     <div>
       <Navbar />
@@ -320,6 +352,35 @@ const ChatBotPage = () => {
 
       <div className="container-fluid mt-3">
         <div className="row">
+
+          <div className="modal fade" id="deleteModal" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Delete Chat Session</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div className="modal-body">
+                  Are you sure you want to delete this chat session?
+                </div>
+
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    data-bs-dismiss="modal"
+                    onClick={handleConfirmDelete}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* SIDEBAR */}
           <div className="col-3 border-end" style={{ height: '75vh', overflowY: 'auto' }}>
@@ -343,7 +404,7 @@ const ChatBotPage = () => {
 
             <div className="list-group">
               {sessions.map(s => (
-                <a
+                <button
                   key={s.id}
                   className={`list-group-item list-group-item-action ${sessionID === s.id ? 'active' : ''}`}
                   onClick={() => switchSession(s.id)}
@@ -355,7 +416,19 @@ const ChatBotPage = () => {
                   }}
                 >
                   {s.title}
-                </a>
+                  <button
+                    type="button"
+                    className="btn btn-link btn-sm float-end text-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteModal"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSessionToDelete(s.id);
+                    }}
+                  >
+                    <i className="bi bi-trash"></i>
+                  </button>
+                </button>
               ))}
             </div>
           </div>
