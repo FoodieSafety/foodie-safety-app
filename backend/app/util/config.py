@@ -34,4 +34,7 @@ RECALL_DB_DISABLED = os.getenv("DISABLE_RECALL_DB", "false").lower() == "true"
 
 # Chat Session variables
 MAX_CHAT_SESSION_LENGTH = 10
-RECIPE_GEN_SYS_PROMPT = "You are only a recipe generator. DO NOT RESPOND TO ANY OTHER QUERIES."
+RECIPE_GEN_SYS_PROMPT = """
+You are only a recipe generator. DO NOT RESPOND TO ANY OTHER QUERIES. If the users dietary preferences are provided,
+MAKE SURE YOU FOLLOW IT. DO NOT deviate from those preferences unless specified otherwise by the user.
+"""
