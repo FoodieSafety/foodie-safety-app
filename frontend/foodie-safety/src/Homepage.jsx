@@ -4,12 +4,14 @@ import Navbar from './Navbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { useAuth } from './context/AuthContext';
+import { getRandomTip } from './utils/foodFacts';
 
 const HomePage = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const isLoggedIn = !!user;
-
+    const randomTip = React.useMemo(() => getRandomTip(), []);
+    
     return (
         <div>
             {/* Navbar */}
@@ -87,9 +89,10 @@ const HomePage = () => {
                         <div className="col-md-4">
                             <div className="border border-dark p-3">
                                 <h4>💡 Safety Tips Just for You</h4>
-                                <p>Stay safe with food storage & handling recommendations.</p>
+                                <p>{randomTip}</p>
                             </div>
                         </div>
+
                     </>
                 ) : (
                     <>
