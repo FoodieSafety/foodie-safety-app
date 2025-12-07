@@ -27,6 +27,11 @@ class ChatController:
         return ChatDao.get_chat_session(user_id=user_id, session_id=session_id, ddb_util=ddb_util)
     
     @staticmethod
+    def delete_chat_session(session_id: str, ddb_util: DynamoUtil, token_data: TokenData) -> None:
+        user_id = token_data.user_id
+        return ChatDao.delete_chat_session(user_id=user_id, session_id=session_id, ddb_util=ddb_util)
+
+    @staticmethod
     def get_chat_sessions(ddb_util: DynamoUtil, token_data: TokenData) -> List[str]:
         """
         Return a list of session_ids for the current user.

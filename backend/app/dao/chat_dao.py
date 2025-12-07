@@ -31,6 +31,32 @@ class ChatDao:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User with id {user_id} has no chat session with id {session_id}"
         )
+    
+    @staticmethod
+    def delete_chat_session(user_id, session_id, ddb_util:DynamoUtil):
+        """
+        Returns the entire chat session for a given user_id and session_id
+        """
+        table_name = os.getenv('DYNAMODB_CHAT_TABLE')
+        item = ddb_util.get_item(table_name, "user_id", user_id)
+        if not item:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with id {user_id} has no chat sessions"
+            )
+        sessions = item.get('chats', [])
+        updated_sessions = [session for session in sessions if session.get('session_id') != session_id]
+        if len(updated_sessions) == len(sessions):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with id {user_id} has no chat session with id {session_id}"
+            )
+        ddb_util.ddb.Table(table_name).update_item(
+            Key = {'user_id': user_id},
+            UpdateExpression = "SET chats = :updated_sessions",
+            ExpressionAttributeValues = {":updated_sessions": updated_sessions},
+            ReturnValues = "NONE"
+        )
 
     @staticmethod
     def enqueue_msgs(user_id, session_id, msgs: List[ChatMsg], ddb_util:DynamoUtil) -> ChatResponse:

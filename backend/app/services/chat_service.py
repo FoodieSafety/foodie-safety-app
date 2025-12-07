@@ -48,6 +48,21 @@ async def get_messages(
     """
     return ChatController.get_messages(session_id=session_id, ddb_util=ddb_util, token_data=token_data)
 
+@router.delete("/message", status_code=status.HTTP_202_ACCEPTED)
+async def delete_chat_session(
+        session_id: str,
+        ddb_util: DynamoUtil = Depends(get_ddb_util),
+        token_data = Depends(get_current_user)
+):
+    """
+    Delete the chat session
+    :param session_id: session to get the message history from
+    :param ddb_util: dynamodb access for chat storage
+    :param token_data: user token
+    :return: nothing
+    """
+    return ChatController.delete_chat_session(session_id=session_id, ddb_util=ddb_util, token_data=token_data)
+
 @router.get("/sessions", response_model=List[str])
 async def get_chat_sessions(
         ddb_util: DynamoUtil = Depends(get_ddb_util),
