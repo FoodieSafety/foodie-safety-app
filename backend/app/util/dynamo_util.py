@@ -47,8 +47,9 @@ class DynamoUtil:
         table = self.ddb.Table(table_name)
 
         if not filter_method:
-            filter_expression = None
-        elif filter_method == "eq":
+            return table.scan().get("Items", [])
+        
+        if filter_method == "eq":
             filter_expression = Attr(key_attribute).eq(key_value)
         elif filter_method == "contains":
             filter_expression = Attr(key_attribute).contains(key_value)
