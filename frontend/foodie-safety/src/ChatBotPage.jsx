@@ -311,8 +311,18 @@ const ChatBotPage = () => {
     }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!sessionToDelete) return;
+
+    try {
+      const apiUrl = `${config.API_BASE_URL}/chat/message?session_id=${sessionToDelete}`;
+
+      await authenticatedFetch(apiUrl, {
+        method: "DELETE",
+      });
+    } catch (err) {
+      console.error("Failed to delete chat session from backend:", err);
+    }
 
     // Remove from React state
     setSessions(prev => prev.filter(s => s.id !== sessionToDelete));
@@ -324,15 +334,13 @@ const ChatBotPage = () => {
       savePreviewCache(user.email, cache);
     }
 
-    // If you deleted the active session
+    // If the deleted session was active
     if (sessionID === sessionToDelete) {
       const remaining = sessions.filter(s => s.id !== sessionToDelete);
 
       if (remaining.length > 0) {
-        // Select the next available session
         switchSession(remaining[0].id);
       } else {
-        // No sessions left → start fresh
         startNewSession();
       }
     }
